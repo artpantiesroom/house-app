@@ -7,6 +7,7 @@ const AuthContext = createContext(null);
 const REFRESH_TOKEN_KEY = 'house_refresh_token';
 const INACTIVITY_MS = 1000 * 60 * 15;
 const WARNING_MS = 1000 * 60;
+let inFlightRefresh = null;
 
 const normalizeUser = (user) => ({
   id: String(user.id),
@@ -27,6 +28,12 @@ const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
 
 const clearRefreshToken = () => {
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+};
+
+const logAuthDevelopment = (message, details = {}) => {
+  if (import.meta.env.DEV) {
+    console.info(`[auth] ${message}`, details);
+  }
 };
 
 export function AuthProvider({ children }) {
@@ -66,9 +73,32 @@ export function AuthProvider({ children }) {
     if (!refreshToken) {
       throw new Error('Сеанс не знайдено.');
     }
-    const response = await authApi.refresh(refreshToken);
-    return applyAuthResponse(response);
-  }, [applyAuthResponse]);
+
+    if (inFlightRefresh) {
+      logAuthDevelopment('refresh deduplicated');
+      return inFlightRefresh;
+    }
+
+    logAuthDevelopment('restoration started');
+    inFlightRefresh = authApi.refresh(refreshToken)
+      .then((response) => {
+        const nextUser = applyAuthResponse(response);
+        logAuthDevelopment('refresh succeeded', { role: nextUser.role });
+        return nextUser;
+      })
+      .catch((error) => {
+        logAuthDevelopment('refresh failed with status', { status: error.status || 'unknown' });
+        if (getRefreshToken() === refreshToken) {
+          clearSession();
+        }
+        throw error;
+      })
+      .finally(() => {
+        inFlightRefresh = null;
+      });
+
+    return inFlightRefresh;
+  }, [applyAuthResponse, clearSession]);
 
   useEffect(() => {
     setRefreshTokensHandler(refreshSession);
@@ -86,7 +116,7 @@ export function AuthProvider({ children }) {
       try {
         await refreshSession();
       } catch {
-        clearSession();
+        if (active) setUser(null);
       } finally {
         if (active) setAuthReady(true);
       }

@@ -63,8 +63,12 @@ async function request(path, options, didRetry) {
 async function toApiError(response) {
   try {
     const payload = await response.json();
-    return new Error(payload.message || 'Запит не вдалося виконати.');
+    const error = new Error(payload.message || 'Запит не вдалося виконати.');
+    error.status = response.status;
+    return error;
   } catch {
-    return new Error('Запит не вдалося виконати.');
+    const error = new Error('Запит не вдалося виконати.');
+    error.status = response.status;
+    return error;
   }
 }
