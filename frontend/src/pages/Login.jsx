@@ -11,7 +11,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Login() {
-  const { user, login } = useAuth();
+  const { user, authReady, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '', remember: false });
@@ -19,8 +19,10 @@ export default function Login() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (user?.role === 'Administrator') return <Navigate to="/admin/dashboard" replace />;
-  if (user?.role === 'Resident') return <Navigate to="/resident/home" replace />;
+  if (!authReady) return <main className="grid min-h-screen place-items-center"><LoadingSpinner label="Відновлення сеансу" /></main>;
+  if (user?.mustChangePassword) return <Navigate to="/change-password" replace />;
+  if (user?.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
+  if (user?.role === 'RESIDENT') return <Navigate to="/resident/home" replace />;
 
   const validate = () => {
     const next = {};
@@ -38,14 +40,14 @@ export default function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (loading) return;
-    setMessage('Пароль хешовано за допомогою bcrypt (симуляція)');
+    setMessage('');
     if (!validate()) return;
     setLoading(true);
     setErrors({});
     try {
       const loggedInUser = await login({ email: sanitizeText(form.email), password: form.password, remember: form.remember });
-      const fallback = loggedInUser.role === 'Administrator' ? '/admin/dashboard' : '/resident/home';
-      navigate(location.state?.from?.pathname || fallback, { replace: true });
+      const fallback = loggedInUser.mustChangePassword ? '/change-password' : loggedInUser.role === 'ADMIN' ? '/admin/dashboard' : '/resident/home';
+      navigate(loggedInUser.mustChangePassword ? fallback : location.state?.from?.pathname || fallback, { replace: true });
     } catch (error) {
       setErrors({ form: error.message });
     } finally {

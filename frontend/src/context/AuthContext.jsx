@@ -1,71 +1,43 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { demoUsers, simulateRequest } from '../data/mockData.js';
+import { authApi } from '../api/authApi.js';
+import { setAccessToken, setRefreshFailureHandler, setRefreshTokensHandler } from '../api/apiClient.js';
 import { useAudit } from './AuditContext.jsx';
 
 const AuthContext = createContext(null);
-const SESSION_KEY = 'house_session';
-const EXPIRY_MS = 1000 * 60 * 60 * 24 * 7;
+const REFRESH_TOKEN_KEY = 'house_refresh_token';
 const INACTIVITY_MS = 1000 * 60 * 15;
 const WARNING_MS = 1000 * 60;
-const DEMO_CREDENTIALS = {
-  'admin@house.com': 'Admin123!',
-  'resident@house.com': 'Resident123!',
-};
-const SESSION_FIELDS = ['id', 'name', 'email', 'role', 'lastLoginTime'];
 
-const safeUser = (user) => ({
-  id: user.id,
-  residentId: user.residentId,
+const normalizeUser = (user) => ({
+  id: String(user.id),
+  residentId: user.residentId || (user.email === 'resident@house.com' ? 'res-1' : null),
   name: user.name,
   email: user.email,
   role: user.role,
-  lastLoginTime: new Date().toISOString(),
+  mustChangePassword: user.mustChangePassword,
+  preferredLanguage: user.preferredLanguage || 'uk',
+  lastLoginTime: user.lastLoginAt || new Date().toISOString(),
 });
 
-const getStoredSession = () => {
-  const sessionValue = sessionStorage.getItem(SESSION_KEY);
-  if (sessionValue) return JSON.parse(sessionValue);
-  const localValue = localStorage.getItem(SESSION_KEY);
-  if (!localValue) return null;
-  const parsed = JSON.parse(localValue);
-  if (parsed.expiresAt && parsed.expiresAt < Date.now()) {
-    localStorage.removeItem(SESSION_KEY);
-    return null;
-  }
-  return parsed;
+const storeRefreshToken = (refreshToken) => {
+  if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
 };
 
-const isSafeStoredUser = (storedUser) => {
-  if (!storedUser || typeof storedUser !== 'object') return false;
-  if ('password' in storedUser) return false;
-  if (!['Administrator', 'Resident'].includes(storedUser.role)) return false;
-  if (storedUser.role === 'Resident' && !storedUser.residentId) return false;
-  return SESSION_FIELDS.every((field) => typeof storedUser[field] === 'string' && storedUser[field].length > 0);
+const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
+
+const clearRefreshToken = () => {
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
 };
 
 export function AuthProvider({ children }) {
   const { appendAuditLog } = useAudit();
   const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(60);
   const warningTimer = useRef(null);
   const logoutTimer = useRef(null);
   const countdownTimer = useRef(null);
-
-  useEffect(() => {
-    try {
-      const saved = getStoredSession();
-      if (isSafeStoredUser(saved?.user)) {
-        setUser(saved.user);
-      } else {
-        sessionStorage.removeItem(SESSION_KEY);
-        localStorage.removeItem(SESSION_KEY);
-      }
-    } catch {
-      sessionStorage.removeItem(SESSION_KEY);
-      localStorage.removeItem(SESSION_KEY);
-    }
-  }, []);
 
   const clearTimers = useCallback(() => {
     window.clearTimeout(warningTimer.current);
@@ -73,23 +45,71 @@ export function AuthProvider({ children }) {
     window.clearInterval(countdownTimer.current);
   }, []);
 
-  const storeSession = (nextUser, remember) => {
-    const payload = remember ? { user: nextUser, expiresAt: Date.now() + EXPIRY_MS } : { user: nextUser };
-    sessionStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem(SESSION_KEY);
-    if (remember) localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
-    else sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload));
-  };
-
-  const logout = useCallback((reason = 'USER_LOGOUT', actorOverride) => {
-    const actor = actorOverride || user?.email || 'unknown@house.com';
+  const clearSession = useCallback(() => {
     clearTimers();
-    sessionStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem(SESSION_KEY);
+    setAccessToken(null);
+    clearRefreshToken();
     setShowTimeoutWarning(false);
     setUser(null);
+  }, [clearTimers]);
+
+  const applyAuthResponse = useCallback((response) => {
+    setAccessToken(response.accessToken);
+    storeRefreshToken(response.refreshToken);
+    const nextUser = normalizeUser(response.user);
+    setUser(nextUser);
+    return nextUser;
+  }, []);
+
+  const refreshSession = useCallback(async () => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) {
+      throw new Error('Сеанс не знайдено.');
+    }
+    const response = await authApi.refresh(refreshToken);
+    return applyAuthResponse(response);
+  }, [applyAuthResponse]);
+
+  useEffect(() => {
+    setRefreshTokensHandler(refreshSession);
+    setRefreshFailureHandler(clearSession);
+  }, [clearSession, refreshSession]);
+
+  useEffect(() => {
+    let active = true;
+    const restore = async () => {
+      const refreshToken = getRefreshToken();
+      if (!refreshToken) {
+        if (active) setAuthReady(true);
+        return;
+      }
+      try {
+        await refreshSession();
+      } catch {
+        clearSession();
+      } finally {
+        if (active) setAuthReady(true);
+      }
+    };
+    restore();
+    return () => {
+      active = false;
+    };
+  }, [clearSession, refreshSession]);
+
+  const logout = useCallback(async (reason = 'USER_LOGOUT', actorOverride) => {
+    const actor = actorOverride || user?.email || 'unknown@house.com';
+    const refreshToken = getRefreshToken();
+    clearSession();
+    if (refreshToken) {
+      try {
+        await authApi.logout(refreshToken);
+      } catch {
+        // Local logout must still complete when the server session is already gone.
+      }
+    }
     appendAuditLog({ actor, action: 'LOGOUT', target: reason, result: 'SUCCESS' });
-  }, [appendAuditLog, clearTimers, user]);
+  }, [appendAuditLog, clearSession, user]);
 
   const resetActivityTimers = useCallback(() => {
     if (!user) return;
@@ -118,20 +138,35 @@ export function AuthProvider({ children }) {
   }, [clearTimers, resetActivityTimers, user]);
 
   const login = useCallback(async ({ email, password, remember }) => {
-    await simulateRequest(null, 1200);
-    const matched = demoUsers.find((candidate) => candidate.email === email && DEMO_CREDENTIALS[candidate.email] === password);
-    if (!matched) {
+    try {
+      const response = await authApi.login({ email, password, rememberMe: remember });
+      const nextUser = applyAuthResponse(response);
+      appendAuditLog({ actor: nextUser.email, action: 'LOGIN', target: 'Auth', result: 'SUCCESS' });
+      return nextUser;
+    } catch (error) {
       appendAuditLog({ actor: email || 'unknown@house.com', action: 'LOGIN', target: 'Auth', result: 'FAILED' });
-      throw new Error('Неправильний email або пароль.');
+      throw new Error(error.message || 'Неправильний email або пароль.');
     }
-    const nextUser = safeUser(matched);
-    storeSession(nextUser, remember);
-    setUser(nextUser);
-    appendAuditLog({ actor: nextUser.email, action: 'LOGIN', target: 'Auth', result: 'SUCCESS' });
-    return nextUser;
-  }, [appendAuditLog]);
+  }, [appendAuditLog, applyAuthResponse]);
 
-  const value = useMemo(() => ({ user, login, logout, resetActivityTimers, showTimeoutWarning, secondsLeft }), [user, login, logout, resetActivityTimers, showTimeoutWarning, secondsLeft]);
+  const changePassword = useCallback(async ({ currentPassword, newPassword }) => {
+    const response = await authApi.changePassword({ currentPassword, newPassword });
+    const nextUser = applyAuthResponse(response);
+    appendAuditLog({ actor: nextUser.email, action: 'PASSWORD_CHANGED', target: 'Auth', result: 'SUCCESS' });
+    return nextUser;
+  }, [appendAuditLog, applyAuthResponse]);
+
+  const value = useMemo(() => ({
+    user,
+    authReady,
+    login,
+    logout,
+    changePassword,
+    resetActivityTimers,
+    showTimeoutWarning,
+    secondsLeft,
+  }), [user, authReady, login, logout, changePassword, resetActivityTimers, showTimeoutWarning, secondsLeft]);
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

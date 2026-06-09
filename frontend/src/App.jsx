@@ -6,6 +6,7 @@ import { DataProvider } from './context/DataContext.jsx';
 import AdminLayout from './layouts/AdminLayout.jsx';
 import ResidentLayout from './layouts/ResidentLayout.jsx';
 import Login from './pages/Login.jsx';
+import ChangePassword from './pages/ChangePassword.jsx';
 import Forbidden from './pages/Forbidden.jsx';
 import Dashboard from './pages/admin/Dashboard.jsx';
 import Residents from './pages/admin/Residents.jsx';
@@ -29,7 +30,10 @@ export default function App() {
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forbidden" element={<Forbidden />} />
-            <Route element={<ProtectedRoute allowedRoles={['Administrator']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'RESIDENT']} allowPasswordChangeRequired />}>
+              <Route path="/change-password" element={<ChangePassword />} />
+            </Route>
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
@@ -42,7 +46,7 @@ export default function App() {
                 <Route path="contacts" element={<AdminContacts />} />
               </Route>
             </Route>
-            <Route element={<ProtectedRoute allowedRoles={['Resident']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['RESIDENT']} />}>
               <Route path="/resident" element={<ResidentLayout />}>
                 <Route index element={<Navigate to="/resident/home" replace />} />
                 <Route path="home" element={<Home />} />

@@ -16,7 +16,7 @@ export default function Sidebar({ user, links, onLogout }) {
           </div>
         </div>
         <div className="mb-5 rounded-xl bg-sky-400/10 p-3 text-xs text-sky-100/75">
-          <p className="font-semibold text-sky-50">{user.role === 'Administrator' ? 'Адміністратор' : 'Мешканець'}</p>
+          <p className="font-semibold text-sky-50">{user.role === 'ADMIN' ? 'Адміністратор' : 'Мешканець'}</p>
           <p>Останній вхід: {new Date(user.lastLoginTime).toLocaleString()}</p>
         </div>
         <nav className="flex flex-1 flex-col gap-2">
