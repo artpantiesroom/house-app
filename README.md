@@ -16,7 +16,17 @@ Stage 1 authentication foundation is implemented:
 - BCrypt password hashing
 - forced password change support
 
-Residents, announcements, maintenance, payments, contacts, audit log, and incidents still use frontend mock data. Stage 2+ modules are not implemented yet.
+Stage 2 residents and apartments are implemented:
+
+- apartment data model and administrator apartment API
+- resident profile data model linked to resident users
+- administrator resident management API and frontend integration
+- resident profile API and frontend page
+- server-side resident data isolation
+- administrator-created residents with temporary passwords and `mustChangePassword=true`
+- avatar path field in the data model
+
+Announcements, maintenance, payments, contacts, audit log, and incidents still use frontend mock data until later stages.
 
 ## Requirements
 
@@ -105,6 +115,8 @@ npm run build
 
 These credentials are for prototype demonstration only.
 
+The seed data also creates four extra prototype residents with apartments and temporary password `TempResident1!`. They are marked as requiring password replacement on first login. These credentials are prototype-only and must not be reused outside local demonstration.
+
 ## Authentication Architecture
 
 - Access token lifetime: 15 minutes.
@@ -135,6 +147,33 @@ Authenticated:
 GET  /api/auth/me
 POST /api/auth/change-password
 ```
+
+Administrator residents and apartments:
+
+```text
+GET    /api/admin/apartments
+POST   /api/admin/apartments
+GET    /api/admin/apartments/{id}
+PUT    /api/admin/apartments/{id}
+DELETE /api/admin/apartments/{id}
+
+GET    /api/admin/residents
+POST   /api/admin/residents
+GET    /api/admin/residents/{id}
+PUT    /api/admin/residents/{id}
+DELETE /api/admin/residents/{id}
+```
+
+`DELETE /api/admin/residents/{id}` performs a soft deactivate of the linked user instead of physically deleting the account.
+
+Resident profile:
+
+```text
+GET /api/resident/profile
+PUT /api/resident/profile
+```
+
+Residents may update only safe profile fields: phone, emergency contact fields, and preferred language. Apartment assignment, notes, role, email, enabled status, and password-change state remain administrator/server controlled.
 
 Role-check endpoints used by Stage 1 tests:
 
@@ -204,6 +243,6 @@ npm run build
 
 - This is not production-certified.
 - No real payment provider is integrated.
-- Stage 2 resident/apartment CRUD is not implemented.
-- Non-auth modules still use mock data.
+- Avatar upload is not implemented yet; Stage 2 stores only `avatarPath`.
+- Announcements, maintenance, payments, contacts, full audit log, and incidents still use mock data or Stage 1 placeholders.
 - Full Ukrainian/English localization is planned for a later stage.

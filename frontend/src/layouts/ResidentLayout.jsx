@@ -10,6 +10,7 @@ const links = [
   { to: '/resident/requests', label: 'Заявки', icon: 'requests' },
   { to: '/resident/payments', label: 'Платежі', icon: 'payments' },
   { to: '/resident/contacts', label: 'Контакти', icon: 'contacts' },
+  { to: '/resident/profile', label: 'Профіль', icon: 'profile' },
 ];
 
 export default function ResidentLayout() {

@@ -20,6 +20,7 @@ import Home from './pages/resident/Home.jsx';
 import MyRequests from './pages/resident/MyRequests.jsx';
 import MyPayments from './pages/resident/MyPayments.jsx';
 import ResidentContacts from './pages/resident/Contacts.jsx';
+import Profile from './pages/resident/Profile.jsx';
 
 export default function App() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
                 <Route path="requests" element={<MyRequests />} />
                 <Route path="payments" element={<MyPayments />} />
                 <Route path="contacts" element={<ResidentContacts />} />
+                <Route path="profile" element={<Profile />} />
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/login" replace />} />

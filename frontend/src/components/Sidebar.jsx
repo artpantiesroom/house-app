@@ -1,8 +1,8 @@
 import { NavLink } from 'react-router-dom';
-import { Bell, Building2, ClipboardList, CreditCard, FileClock, Home, LayoutDashboard, LogOut, ShieldAlert, Users } from 'lucide-react';
+import { Bell, Building2, ClipboardList, CreditCard, FileClock, Home, LayoutDashboard, LogOut, ShieldAlert, UserCircle, Users } from 'lucide-react';
 import FooterSecurityBadge from './FooterSecurityBadge.jsx';
 
-const iconMap = { dashboard: LayoutDashboard, residents: Users, announcements: Bell, maintenance: ClipboardList, payments: CreditCard, audit: FileClock, incidents: ShieldAlert, contacts: Building2, home: Home, requests: ClipboardList };
+const iconMap = { dashboard: LayoutDashboard, residents: Users, announcements: Bell, maintenance: ClipboardList, payments: CreditCard, audit: FileClock, incidents: ShieldAlert, contacts: Building2, home: Home, requests: ClipboardList, profile: UserCircle };
 
 export default function Sidebar({ user, links, onLogout }) {
   return (
