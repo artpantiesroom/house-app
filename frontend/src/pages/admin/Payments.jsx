@@ -3,16 +3,18 @@ import DataClassificationBadge from '../../components/DataClassificationBadge.js
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import { useData } from '../../context/DataContext.jsx';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 
 export default function Payments() {
   const data = useData();
+  const { t } = useLanguage();
   const [records, setRecords] = useState([]);
   const [ready, setReady] = useState(false);
   useEffect(() => { data.loadPayments(data.payments).then((items) => { setRecords(items); setReady(true); }); }, [data.payments]);
   if (!ready) return <SkeletonCard rows={6} />;
   return (
     <section className="space-y-5">
-      <h1 className="text-3xl font-bold">Огляд платежів</h1>
+      <h1 className="text-3xl font-bold">{t('paymentsOverviewTitle')}</h1>
       <div className="grid gap-3">
         {records.map((payment) => {
           const resident = data.residents.find((item) => item.id === payment.residentId);

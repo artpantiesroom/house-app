@@ -42,8 +42,8 @@ export default function Sidebar({ user, links, onLogout }) {
         {links.map((link) => {
           const Icon = iconMap[link.icon] || Home;
           return (
-            <NavLink key={link.to} to={link.to} className={({ isActive }) => `focus-ring flex min-w-20 flex-col items-center rounded-xl px-2 py-2 text-[11px] ${isActive ? 'bg-primary text-white' : 'text-sky-100/70'}`}>
-              <Icon size={18} /> {link.label.split(' ')[0]}
+            <NavLink key={link.to} to={link.to} className={({ isActive }) => `focus-ring flex min-w-24 flex-col items-center rounded-xl px-2 py-2 text-center text-[11px] leading-tight ${isActive ? 'bg-primary text-white' : 'text-sky-100/70'}`}>
+              <Icon size={18} /> {link.label}
             </NavLink>
           );
         })}

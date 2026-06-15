@@ -6,10 +6,12 @@ import { sanitizeText } from '../../data/mockData.js';
 import { useAudit } from '../../context/AuditContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useData } from '../../context/DataContext.jsx';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 
 export default function Announcements() {
   const data = useData();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { appendAuditLog } = useAudit();
   const [ready, setReady] = useState(false);
   const [form, setForm] = useState({ title: '', body: '' });
@@ -51,7 +53,7 @@ export default function Announcements() {
   if (!ready) return <SkeletonCard rows={5} />;
   return (
     <section className="space-y-5">
-      <h1 className="text-3xl font-bold">Оголошення</h1>
+      <h1 className="text-3xl font-bold">{t('announcementsTitle')}</h1>
       <form onSubmit={save} className="glass space-y-3 rounded-2xl p-4">
         <label className="block text-sm">Заголовок<input value={form.title} onChange={(e) => updateField('title', e.target.value)} className={`focus-ring mt-1 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${error ? 'field-error border-rose-300' : 'border-sky-100/15'}`} /></label>
         <label className="block text-sm">Повідомлення<textarea value={form.body} maxLength={240} onChange={(e) => updateField('body', e.target.value)} className={`focus-ring mt-1 min-h-24 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${error ? 'field-error border-rose-300' : 'border-sky-100/15'}`} /></label>

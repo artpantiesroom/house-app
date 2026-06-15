@@ -2,15 +2,17 @@ import { useEffect, useState } from 'react';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import { useData } from '../../context/DataContext.jsx';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 
 export default function Incidents() {
   const data = useData();
+  const { t } = useLanguage();
   const [ready, setReady] = useState(false);
   useEffect(() => { data.loadPageData(true, 850).then(setReady); }, []);
   if (!ready) return <SkeletonCard rows={5} />;
   return (
     <section className="space-y-5">
-      <div><h1 className="text-3xl font-bold">Інциденти безпеки</h1><p className="mt-2 text-sky-100/70">Записи реагування на інциденти симулюються для прототипу моніторингу.</p></div>
+      <div><h1 className="text-3xl font-bold">{t('securityIncidentsTitle')}</h1><p className="mt-2 text-sky-100/70">Записи реагування на інциденти симулюються для прототипу моніторингу.</p></div>
       <div className="grid gap-4 md:grid-cols-3">
         {data.incidents.map((incident) => (
           <article key={incident.id} className="glass rounded-2xl p-4">

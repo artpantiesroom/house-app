@@ -1,11 +1,13 @@
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import { useData } from '../../context/DataContext.jsx';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 
 export default function Contacts() {
   const { contacts, buildingInfo } = useData();
+  const { t } = useLanguage();
   return (
     <section className="space-y-5">
-      <h1 className="text-3xl font-bold">Контакти будинку</h1>
+      <h1 className="text-3xl font-bold">{t('buildingContactsTitle')}</h1>
       <div className="glass rounded-2xl p-5">
         <h2 className="text-xl font-semibold">{buildingInfo.name}</h2>
         <p className="mt-2 text-sky-100/70">{buildingInfo.address} · поверхів: {buildingInfo.floors} · тиха година {buildingInfo.quietHours}</p>

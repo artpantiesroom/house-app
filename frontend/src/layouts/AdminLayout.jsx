@@ -11,14 +11,14 @@ export default function AdminLayout() {
   const { user, logout, showTimeoutWarning, secondsLeft, resetActivityTimers } = useAuth();
   const { t } = useLanguage();
   const links = [
-    { to: '/admin/dashboard', label: t('navDashboard'), icon: 'dashboard' },
+    { to: '/admin/dashboard', label: t('navAdminDashboard'), icon: 'dashboard' },
     { to: '/admin/residents', label: t('navResidents'), icon: 'residents' },
     { to: '/admin/announcements', label: t('navAnnouncements'), icon: 'announcements' },
     { to: '/admin/maintenance', label: t('navMaintenance'), icon: 'maintenance' },
-    { to: '/admin/payments', label: t('navPayments'), icon: 'payments' },
-    { to: '/admin/audit-log', label: t('navAudit'), icon: 'audit' },
-    { to: '/admin/incidents', label: t('navIncidents'), icon: 'incidents' },
-    { to: '/admin/contacts', label: t('navContacts'), icon: 'contacts' },
+    { to: '/admin/payments', label: t('navPaymentsOverview'), icon: 'payments' },
+    { to: '/admin/audit-log', label: t('navAuditLog'), icon: 'audit' },
+    { to: '/admin/incidents', label: t('navSecurityIncidents'), icon: 'incidents' },
+    { to: '/admin/contacts', label: t('navBuildingContacts'), icon: 'contacts' },
   ];
   return (
     <div className="min-h-screen pb-28 lg:pb-0">

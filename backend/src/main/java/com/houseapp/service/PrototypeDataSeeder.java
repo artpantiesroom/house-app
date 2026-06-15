@@ -41,17 +41,24 @@ public class PrototypeDataSeeder implements ApplicationRunner {
     seedUser("Administrator", "admin@house.com", "Admin123!", Role.ADMIN, false);
     User demoResident = seedUser("Demo Resident", "resident@house.com", "Resident123!", Role.RESIDENT, false);
 
-    Apartment apartment101 = seedApartment("A", 1, "101", "48.50", 2, ApartmentStatus.OCCUPIED);
-    seedApartment("A", 1, "102", "39.20", 1, ApartmentStatus.OCCUPIED);
-    seedApartment("A", 2, "201", "64.80", 3, ApartmentStatus.OCCUPIED);
-    seedApartment("B", 2, "B-202", "58.40", 2, ApartmentStatus.OCCUPIED);
-    seedApartment("B", 3, "B-301", "73.10", 3, ApartmentStatus.OCCUPIED);
+    Apartment apartmentA101 = seedApartment("A", 1, "A-101", "42.50", 1, ApartmentStatus.OCCUPIED);
+    seedApartment("A", 1, "A-102", "58.00", 2, ApartmentStatus.VACANT);
+    seedApartment("A", 2, "A-201", "64.00", 2, ApartmentStatus.OCCUPIED);
+    seedApartment("A", 2, "A-202", "78.50", 3, ApartmentStatus.VACANT);
+    seedApartment("A", 3, "A-301", "85.00", 3, ApartmentStatus.MAINTENANCE);
+    seedApartment("B", 1, "B-101", "45.00", 1, ApartmentStatus.OCCUPIED);
+    seedApartment("B", 1, "B-102", "61.00", 2, ApartmentStatus.VACANT);
+    seedApartment("B", 2, "B-201", "73.00", 3, ApartmentStatus.OCCUPIED);
+    seedApartment("B", 2, "B-202", "90.00", 4, ApartmentStatus.VACANT);
+    seedApartment("C", 1, "C-101", "52.00", 2, ApartmentStatus.VACANT);
+    seedApartment("C", 1, "C-102", "59.50", 2, ApartmentStatus.OCCUPIED);
+    seedApartment("C", 2, "C-201", "68.00", 3, ApartmentStatus.MAINTENANCE);
 
-    seedResidentProfile(demoResident, apartment101, "+380501112233", "Олена Демчук", "+380501112244", null, "Seeded prototype resident profile.");
-    seedDemoResident("Olena Kovalenko", "olena.resident@house.com", "TempResident1!", "102", "+380671234501");
-    seedDemoResident("Andrii Shevchenko", "andrii.resident@house.com", "TempResident1!", "201", "+380671234502");
-    seedDemoResident("Iryna Melnyk", "iryna.resident@house.com", "TempResident1!", "B-202", "+380671234503");
-    seedDemoResident("Taras Bondar", "taras.resident@house.com", "TempResident1!", "B-301", "+380671234504");
+    seedResidentProfile(demoResident, apartmentA101, "+380501112233", "Олена Демчук", "+380501112244", null, "Seeded prototype resident profile.");
+    seedDemoResident("Olena Kovalenko", "olena.resident@house.com", "TempResident1!", "A-201", "+380671234501");
+    seedDemoResident("Andrii Shevchenko", "andrii.resident@house.com", "TempResident1!", "B-101", "+380671234502");
+    seedDemoResident("Iryna Melnyk", "iryna.resident@house.com", "TempResident1!", "B-201", "+380671234503");
+    seedDemoResident("Taras Bondar", "taras.resident@house.com", "TempResident1!", "C-102", "+380671234504");
   }
 
   private User seedUser(String name, String email, String rawPassword, Role role, boolean mustChangePassword) {

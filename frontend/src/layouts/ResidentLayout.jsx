@@ -11,9 +11,9 @@ export default function ResidentLayout() {
   const { user, logout, showTimeoutWarning, secondsLeft, resetActivityTimers } = useAuth();
   const { t } = useLanguage();
   const links = [
-    { to: '/resident/home', label: t('navHome'), icon: 'home' },
-    { to: '/resident/requests', label: t('navMaintenance'), icon: 'requests' },
-    { to: '/resident/payments', label: t('navPayments'), icon: 'payments' },
+    { to: '/resident/home', label: t('navResidentHome'), icon: 'home' },
+    { to: '/resident/requests', label: t('navMyRequests'), icon: 'requests' },
+    { to: '/resident/payments', label: t('navMyPayments'), icon: 'payments' },
     { to: '/resident/contacts', label: t('navContacts'), icon: 'contacts' },
     { to: '/resident/profile', label: t('navProfile'), icon: 'profile' },
   ];

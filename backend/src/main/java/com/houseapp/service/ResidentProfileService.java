@@ -166,6 +166,10 @@ public class ResidentProfileService {
     if (occupied) {
       throw conflict("Apartment is already assigned to another resident");
     }
+    boolean assignedToCurrentResident = currentProfileId != null && residentProfileRepository.existsByApartmentId(apartmentId);
+    if (!assignedToCurrentResident && apartment.getStatus() != ApartmentStatus.VACANT) {
+      throw conflict("Apartment is not available for assignment");
+    }
     return apartment;
   }
 

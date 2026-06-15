@@ -45,7 +45,10 @@ export default function Residents() {
   const availableApartments = useMemo(() => {
     const currentApartmentId = editingId ? Number(form.apartmentId || 0) : 0;
     const occupied = new Set(residents.map((resident) => resident.apartmentId).filter(Boolean));
-    return apartments.filter((apartment) => !occupied.has(apartment.id) || apartment.id === currentApartmentId);
+    return apartments.filter((apartment) => {
+      if (apartment.id === currentApartmentId) return true;
+      return apartment.status === 'VACANT' && !occupied.has(apartment.id);
+    });
   }, [apartments, residents, editingId, form.apartmentId]);
 
   const load = async () => {
@@ -181,7 +184,7 @@ export default function Residents() {
           </Field>
         )}
         <Field label={t('residentPhone')} error={errors.phone}><input value={form.phone} onChange={(e) => updateField('phone', e.target.value)} placeholder={UKRAINIAN_PHONE_PLACEHOLDER} inputMode="tel" className={inputClass(errors.phone)} /></Field>
-        <Field label={t('apartment')}><select value={form.apartmentId} onChange={(e) => updateField('apartmentId', e.target.value)} className={inputClass()}><option value="">{t('noApartment')}</option>{availableApartments.map((apartment) => <option key={apartment.id} value={apartment.id}>{apartment.buildingSection} · {t('apartmentShort')} {apartment.apartmentNumber}, {t('floorLabel')} {apartment.floor}</option>)}</select></Field>
+        <Field label={t('apartment')}><select value={form.apartmentId} onChange={(e) => updateField('apartmentId', e.target.value)} className={inputClass()}><option value="">{t('noApartment')}</option>{availableApartments.map((apartment) => <option key={apartment.id} value={apartment.id}>{formatApartmentOption(apartment, t)}</option>)}</select></Field>
         <Field label={t('emergencyContactPerson')} error={errors.emergencyContactName}><input value={form.emergencyContactName} onChange={(e) => updateField('emergencyContactName', e.target.value)} className={inputClass(errors.emergencyContactName)} /></Field>
         <Field label={t('emergencyContactPhone')} error={errors.emergencyContactPhone}><input value={form.emergencyContactPhone} onChange={(e) => updateField('emergencyContactPhone', e.target.value)} placeholder={UKRAINIAN_PHONE_PLACEHOLDER} inputMode="tel" className={inputClass(errors.emergencyContactPhone)} /></Field>
         <Field label={t('language')}><select value={form.preferredLanguage} onChange={(e) => updateField('preferredLanguage', e.target.value)} className={inputClass()}><option value="uk">Українська</option><option value="en">English</option></select></Field>
@@ -238,4 +241,13 @@ function Field({ label, error, wide = false, children }) {
 
 function inputClass(error) {
   return `focus-ring mt-1 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${error ? 'field-error border-rose-300' : 'border-sky-100/15'}`;
+}
+
+function formatApartmentOption(apartment, t) {
+  const statusKey = {
+    OCCUPIED: 'apartmentStatusOccupied',
+    VACANT: 'apartmentStatusVacant',
+    MAINTENANCE: 'apartmentStatusMaintenance',
+  }[apartment.status] || 'apartmentStatusVacant';
+  return `${apartment.apartmentNumber} · ${t('sectionLabel')} ${apartment.buildingSection} · ${t('floorLabel')} ${apartment.floor} · ${t(statusKey)}`;
 }

@@ -4,10 +4,12 @@ import SkeletonCard from '../../components/SkeletonCard.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import { useAudit } from '../../context/AuditContext.jsx';
 import { useData } from '../../context/DataContext.jsx';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 
 export default function Dashboard() {
   const data = useData();
   const { auditLog } = useAudit();
+  const { t } = useLanguage();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -22,11 +24,11 @@ export default function Dashboard() {
   return (
     <section className="space-y-5">
       <div>
-        <h1 className="text-3xl font-bold">Панель адміністратора</h1>
+        <h1 className="text-3xl font-bold">{t('adminDashboardTitle')}</h1>
         <p className="mt-2 text-sky-100/70">Цей прототип симулює базові контролі інформаційної безпеки для доступу, журналювання аудиту, керування сеансом і класифікації даних.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[['Мешканці', data.residents.length, Users], ['Відкриті заявки', openRequests, Activity], ['Несплачені рахунки', unpaidBills, CreditCard], ['Інциденти безпеки', data.incidents.length, AlertTriangle]].map(([label, value, Icon]) => (
+        {[[t('navResidents'), data.residents.length, Users], [t('navMaintenance'), openRequests, Activity], [t('navPaymentsOverview'), unpaidBills, CreditCard], [t('navSecurityIncidents'), data.incidents.length, AlertTriangle]].map(([label, value, Icon]) => (
           <div key={label} className="glass rounded-2xl p-5 transition hover:scale-[1.01]">
             <Icon className="mb-4 text-accent" />
             <p className="text-sm text-sky-100/65">{label}</p>

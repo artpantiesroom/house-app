@@ -42,7 +42,10 @@ class Stage2ResidentsApartmentsIntegrationTest {
   void adminCanListApartments() throws Exception {
     JsonNode apartments = getJson("/api/admin/apartments", adminToken(), 200);
 
-    assertThat(apartments).hasSizeGreaterThanOrEqualTo(5);
+    assertThat(apartments).hasSizeGreaterThanOrEqualTo(10);
+    assertThat(countApartmentsByStatus(apartments, "OCCUPIED")).isGreaterThanOrEqualTo(4);
+    assertThat(countApartmentsByStatus(apartments, "VACANT")).isGreaterThanOrEqualTo(4);
+    assertThat(countApartmentsByStatus(apartments, "MAINTENANCE")).isGreaterThanOrEqualTo(1);
   }
 
   @Test
@@ -146,7 +149,7 @@ class Stage2ResidentsApartmentsIntegrationTest {
   @Test
   void occupiedApartmentCannotBeAssignedToAnotherResident() throws Exception {
     JsonNode apartments = getJson("/api/admin/apartments", adminToken(), 200);
-    long occupiedApartmentId = findApartmentId(apartments, "101");
+    long occupiedApartmentId = findApartmentId(apartments, "A-101");
     String email = "occupied." + UUID.randomUUID() + "@example.com";
 
     postJson("/api/admin/residents", """
@@ -157,6 +160,22 @@ class Stage2ResidentsApartmentsIntegrationTest {
           "apartmentId":%d
         }
         """.formatted(email, occupiedApartmentId), adminToken(), 409);
+  }
+
+  @Test
+  void maintenanceApartmentCannotBeAssignedToResident() throws Exception {
+    JsonNode apartments = getJson("/api/admin/apartments", adminToken(), 200);
+    long maintenanceApartmentId = findApartmentId(apartments, "A-301");
+    String email = "maintenance." + UUID.randomUUID() + "@example.com";
+
+    postJson("/api/admin/residents", """
+        {
+          "name":"Maintenance Test",
+          "email":"%s",
+          "temporaryPassword":"Temporary123!",
+          "apartmentId":%d
+        }
+        """.formatted(email, maintenanceApartmentId), adminToken(), 409);
   }
 
   private JsonNode createApartment(String apartmentNumber, int floor) throws Exception {
@@ -187,6 +206,16 @@ class Stage2ResidentsApartmentsIntegrationTest {
       }
     }
     throw new AssertionError("Apartment not found: " + number);
+  }
+
+  private long countApartmentsByStatus(JsonNode apartments, String status) {
+    long count = 0;
+    for (JsonNode apartment : apartments) {
+      if (status.equals(apartment.get("status").asText())) {
+        count++;
+      }
+    }
+    return count;
   }
 
   private String adminToken() throws Exception {
