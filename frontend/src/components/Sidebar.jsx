@@ -1,24 +1,28 @@
 import { NavLink } from 'react-router-dom';
 import { Bell, Building2, ClipboardList, CreditCard, FileClock, Home, LayoutDashboard, LogOut, ShieldAlert, UserCircle, Users } from 'lucide-react';
 import FooterSecurityBadge from './FooterSecurityBadge.jsx';
+import LanguageToggle from './LanguageToggle.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 const iconMap = { dashboard: LayoutDashboard, residents: Users, announcements: Bell, maintenance: ClipboardList, payments: CreditCard, audit: FileClock, incidents: ShieldAlert, contacts: Building2, home: Home, requests: ClipboardList, profile: UserCircle };
 
 export default function Sidebar({ user, links, onLogout }) {
+  const { t } = useLanguage();
   return (
     <>
       <aside className="glass fixed left-4 top-4 hidden h-[calc(100vh-2rem)] w-72 flex-col rounded-2xl p-4 lg:flex">
         <div className="mb-6 flex items-center gap-3">
           <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-white"><Building2 /></div>
           <div>
-            <p className="font-semibold">Дім Онлайн</p>
+            <p className="font-semibold">{t('appName')}</p>
             <p className="text-xs text-sky-100/65">{user.email}</p>
           </div>
         </div>
         <div className="mb-5 rounded-xl bg-sky-400/10 p-3 text-xs text-sky-100/75">
-          <p className="font-semibold text-sky-50">{user.role === 'ADMIN' ? 'Адміністратор' : 'Мешканець'}</p>
-          <p>Останній вхід: {new Date(user.lastLoginTime).toLocaleString()}</p>
+          <p className="font-semibold text-sky-50">{user.role === 'ADMIN' ? t('adminRole') : t('residentRole')}</p>
+          <p>{t('lastLogin')}: {new Date(user.lastLoginTime).toLocaleString()}</p>
         </div>
+        <div className="mb-4"><LanguageToggle /></div>
         <nav className="flex flex-1 flex-col gap-2">
           {links.map((link) => {
             const Icon = iconMap[link.icon] || Home;
@@ -30,7 +34,7 @@ export default function Sidebar({ user, links, onLogout }) {
           })}
         </nav>
         <button onClick={onLogout} className="focus-ring mt-4 flex items-center justify-center gap-2 rounded-xl border border-sky-100/15 px-3 py-3 text-sm font-semibold text-sky-100 transition hover:scale-[1.02]">
-          <LogOut size={18} /> Вийти
+          <LogOut size={18} /> {t('logout')}
         </button>
         <FooterSecurityBadge />
       </aside>

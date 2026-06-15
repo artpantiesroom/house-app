@@ -4,6 +4,8 @@ import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import { residentsApi } from '../../api/residentsApi.js';
+import { useLanguage } from '../../context/LanguageContext.jsx';
+import { UKRAINIAN_PHONE_PLACEHOLDER, formatUkrainianPhone, isValidUkrainianPhone } from '../../utils/phoneFormat.js';
 
 const emptyForm = {
   phone: '',
@@ -13,6 +15,7 @@ const emptyForm = {
 };
 
 export default function Profile() {
+  const { t } = useLanguage();
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
@@ -28,13 +31,13 @@ export default function Profile() {
       const data = await residentsApi.getOwnProfile();
       setProfile(data);
       setForm({
-        phone: data.phone || '',
+        phone: formatUkrainianPhone(data.phone) || data.phone || '',
         emergencyContactName: data.emergencyContactName || '',
-        emergencyContactPhone: data.emergencyContactPhone || '',
+        emergencyContactPhone: formatUkrainianPhone(data.emergencyContactPhone) || data.emergencyContactPhone || '',
         preferredLanguage: data.preferredLanguage || 'uk',
       });
     } catch (loadError) {
-      setError(loadError.message || 'Не вдалося завантажити профіль.');
+      setError(loadError.message || t('profileLoadFailed'));
     } finally {
       setLoading(false);
     }
@@ -46,9 +49,11 @@ export default function Profile() {
 
   const validate = () => {
     const next = {};
-    if (form.phone.length > 40) next.phone = 'Телефон має містити не більше 40 символів.';
-    if (form.emergencyContactName.length > 120) next.emergencyContactName = 'Контакт має містити не більше 120 символів.';
-    if (form.emergencyContactPhone.length > 40) next.emergencyContactPhone = 'Телефон контакту має містити не більше 40 символів.';
+    if (form.phone.length > 40) next.phone = t('residentPhoneTooLong');
+    if (!isValidUkrainianPhone(form.phone)) next.phone = t('residentPhoneInvalid');
+    if (form.emergencyContactName.length > 120) next.emergencyContactName = t('emergencyContactTooLong');
+    if (form.emergencyContactPhone.length > 40) next.emergencyContactPhone = t('emergencyPhoneTooLong');
+    if (!isValidUkrainianPhone(form.emergencyContactPhone)) next.emergencyContactPhone = t('emergencyPhoneInvalid');
     setErrors(next);
     return !Object.keys(next).length;
   };
@@ -67,16 +72,19 @@ export default function Profile() {
         preferredLanguage: form.preferredLanguage,
       });
       setProfile(updated);
-      setSuccess('Профіль оновлено.');
+      setSuccess(t('profileSaved'));
     } catch (saveError) {
-      setError(saveError.message || 'Не вдалося зберегти профіль.');
+      setError(saveError.message || t('profileSaveFailed'));
     } finally {
       setSaving(false);
     }
   };
 
   const updateField = (field, value) => {
-    setForm((current) => ({ ...current, [field]: value }));
+    const nextValue = field === 'phone' || field === 'emergencyContactPhone'
+      ? formatUkrainianPhone(value)
+      : value;
+    setForm((current) => ({ ...current, [field]: nextValue }));
     setErrors((current) => ({ ...current, [field]: '' }));
   };
 
@@ -85,8 +93,8 @@ export default function Profile() {
   return (
     <section className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold">Профіль</h1>
-        <button onClick={load} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-2 text-sm">Оновити</button>
+        <h1 className="text-3xl font-bold">{t('profileTitle')}</h1>
+        <button onClick={load} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-2 text-sm">{t('refresh')}</button>
       </div>
       {error && <div className="rounded-xl border border-rose-300/40 bg-rose-500/15 p-3 text-sm text-rose-100">{error}</div>}
       {success && <div className="rounded-xl border border-emerald-300/40 bg-emerald-500/15 p-3 text-sm text-emerald-100">{success}</div>}
@@ -104,21 +112,21 @@ export default function Profile() {
               </div>
             </div>
             <div className="mt-5 grid gap-3 text-sm">
-              <Info label="Квартира" value={profile.apartmentNumber ? `Секція ${profile.buildingSection}, кв. ${profile.apartmentNumber}, поверх ${profile.floor}` : 'Не призначена'} />
-              <Info label="Телефон" value={profile.phone || 'Не вказано'} confidential />
-              <Info label="Аварійний контакт" value={profile.emergencyContactName || 'Не вказано'} confidential />
-              <Info label="Телефон контакту" value={profile.emergencyContactPhone || 'Не вказано'} confidential />
+              <Info label={t('apartment')} value={profile.apartmentNumber ? `${t('sectionLabel')} ${profile.buildingSection}, ${t('apartmentShort')} ${profile.apartmentNumber}, ${t('floorLabel')} ${profile.floor}` : t('notAssigned')} />
+              <Info label={t('yourPhoneNumber')} value={profile.phone || t('notProvided')} confidential />
+              <Info label={t('emergencyContactPerson')} value={profile.emergencyContactName || t('notProvided')} confidential />
+              <Info label={t('emergencyContactPhone')} value={profile.emergencyContactPhone || t('notProvided')} confidential />
             </div>
             <p className="mt-5 rounded-xl border border-sky-100/15 bg-sky-400/10 p-3 text-xs text-sky-100/70">
-              Завантаження аватара буде додано на окремому етапі. Зараз backend зберігає тільки шлях до аватара.
+              {t('avatarLater')}
             </p>
           </article>
           <form onSubmit={save} className="glass grid content-start gap-3 rounded-2xl p-5 md:grid-cols-2">
-            <Field label="Телефон" error={errors.phone}><input value={form.phone} onChange={(e) => updateField('phone', e.target.value)} className={inputClass(errors.phone)} /></Field>
-            <Field label="Мова"><select value={form.preferredLanguage} onChange={(e) => updateField('preferredLanguage', e.target.value)} className={inputClass()}><option value="uk">Українська</option><option value="en">English</option></select></Field>
-            <Field label="Аварійний контакт" error={errors.emergencyContactName}><input value={form.emergencyContactName} onChange={(e) => updateField('emergencyContactName', e.target.value)} className={inputClass(errors.emergencyContactName)} /></Field>
-            <Field label="Телефон контакту" error={errors.emergencyContactPhone}><input value={form.emergencyContactPhone} onChange={(e) => updateField('emergencyContactPhone', e.target.value)} className={inputClass(errors.emergencyContactPhone)} /></Field>
-            <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60 md:col-span-2">{saving ? <LoadingSpinner label="Збереження" /> : 'Зберегти профіль'}</button>
+            <Field label={t('yourPhoneNumber')} error={errors.phone}><input value={form.phone} onChange={(e) => updateField('phone', e.target.value)} placeholder={UKRAINIAN_PHONE_PLACEHOLDER} inputMode="tel" className={inputClass(errors.phone)} /></Field>
+            <Field label={t('language')}><select value={form.preferredLanguage} onChange={(e) => updateField('preferredLanguage', e.target.value)} className={inputClass()}><option value="uk">Українська</option><option value="en">English</option></select></Field>
+            <Field label={t('emergencyContactPerson')} error={errors.emergencyContactName}><input value={form.emergencyContactName} onChange={(e) => updateField('emergencyContactName', e.target.value)} className={inputClass(errors.emergencyContactName)} /></Field>
+            <Field label={t('emergencyContactPhone')} error={errors.emergencyContactPhone}><input value={form.emergencyContactPhone} onChange={(e) => updateField('emergencyContactPhone', e.target.value)} placeholder={UKRAINIAN_PHONE_PLACEHOLDER} inputMode="tel" className={inputClass(errors.emergencyContactPhone)} /></Field>
+            <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60 md:col-span-2">{saving ? <LoadingSpinner label={t('saving')} /> : t('saveProfile')}</button>
           </form>
         </div>
       )}

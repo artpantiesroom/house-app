@@ -3,6 +3,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { AuditProvider } from './context/AuditContext.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { DataProvider } from './context/DataContext.jsx';
+import { LanguageProvider } from './context/LanguageContext.jsx';
 import AdminLayout from './layouts/AdminLayout.jsx';
 import ResidentLayout from './layouts/ResidentLayout.jsx';
 import Login from './pages/Login.jsx';
@@ -24,10 +25,11 @@ import Profile from './pages/resident/Profile.jsx';
 
 export default function App() {
   return (
-    <AuditProvider>
-      <AuthProvider>
-        <DataProvider>
-          <Routes>
+    <LanguageProvider>
+      <AuditProvider>
+        <AuthProvider>
+          <DataProvider>
+            <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forbidden" element={<Forbidden />} />
@@ -58,9 +60,10 @@ export default function App() {
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </DataProvider>
-      </AuthProvider>
-    </AuditProvider>
+            </Routes>
+          </DataProvider>
+        </AuthProvider>
+      </AuditProvider>
+    </LanguageProvider>
   );
 }

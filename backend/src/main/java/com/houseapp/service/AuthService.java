@@ -84,7 +84,7 @@ public class AuthService {
     User user = userRepository.findById(principal.getId())
         .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Authentication required"));
     if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
-      throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Invalid credentials");
+      throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Current password is incorrect");
     }
     user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
     user.setMustChangePassword(false);

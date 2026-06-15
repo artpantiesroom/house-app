@@ -144,6 +144,68 @@ class AuthIntegrationTest {
   }
 
   @Test
+  void residentWithRequiredPasswordChangeCanReplaceTemporaryPasswordAndKeepSession() throws Exception {
+    String email = "change.required.%d@example.com".formatted(System.nanoTime());
+    createTemporaryResident(email, "Temporary123!");
+
+    JsonNode login = login(email, "Temporary123!", false);
+    assertThat(login.at("/user/mustChangePassword").asBoolean()).isTrue();
+    String accessToken = login.get("accessToken").asText();
+    String oldRefreshToken = login.get("refreshToken").asText();
+
+    JsonNode changed = postJsonWithAccessToken("/api/auth/change-password", """
+        {"currentPassword":"Temporary123!","newPassword":"Changed123!"}
+        """, accessToken, 200);
+
+    assertThat(changed.get("accessToken").asText()).isNotBlank();
+    assertThat(changed.get("refreshToken").asText()).isNotBlank();
+    assertThat(changed.get("refreshToken").asText()).isNotEqualTo(oldRefreshToken);
+    assertThat(changed.at("/user/mustChangePassword").asBoolean()).isFalse();
+
+    User saved = userRepository.findByEmail(email).orElseThrow();
+    assertThat(saved.isMustChangePassword()).isFalse();
+    assertThat(passwordEncoder.matches("Changed123!", saved.getPasswordHash())).isTrue();
+    assertThat(passwordEncoder.matches("Temporary123!", saved.getPasswordHash())).isFalse();
+
+    JsonNode refreshed = postJson("/api/auth/refresh", """
+        {"refreshToken":"%s"}
+        """.formatted(changed.get("refreshToken").asText()), 200);
+    assertThat(refreshed.at("/user/mustChangePassword").asBoolean()).isFalse();
+
+    mockMvc.perform(post("/api/auth/refresh")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {"refreshToken":"%s"}
+                """.formatted(oldRefreshToken)))
+        .andExpect(status().isUnauthorized());
+
+    mockMvc.perform(post("/api/auth/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {"email":"%s","password":"Temporary123!","rememberMe":false}
+                """.formatted(email)))
+        .andExpect(status().isUnauthorized());
+
+    JsonNode newPasswordLogin = login(email, "Changed123!", false);
+    assertThat(newPasswordLogin.at("/user/mustChangePassword").asBoolean()).isFalse();
+  }
+
+  @Test
+  void passwordChangeWithWrongCurrentPasswordReturnsValidationError() throws Exception {
+    String email = "wrong.current.%d@example.com".formatted(System.nanoTime());
+    createTemporaryResident(email, "Temporary123!");
+    JsonNode login = login(email, "Temporary123!", false);
+
+    JsonNode error = postJsonWithAccessToken("/api/auth/change-password", """
+        {"currentPassword":"Wrong123!","newPassword":"Changed123!"}
+        """, login.get("accessToken").asText(), 400);
+
+    assertThat(error.get("error").asText()).isEqualTo("VALIDATION_ERROR");
+    assertThat(error.get("message").asText()).isEqualTo("Current password is incorrect");
+    assertThat(userRepository.findByEmail(email).orElseThrow().isMustChangePassword()).isTrue();
+  }
+
+  @Test
   void passwordValidationRejectsWeakPassword() throws Exception {
     JsonNode login = login("admin@house.com", "Admin123!", false);
     String accessToken = login.get("accessToken").asText();
@@ -189,5 +251,17 @@ class AuthIntegrationTest {
                 {"refreshToken":"%s"}
                 """.formatted(refreshToken)))
         .andExpect(status().isNoContent());
+  }
+
+  private void createTemporaryResident(String email, String password) {
+    User user = new User();
+    user.setName("Temporary Resident");
+    user.setEmail(email);
+    user.setPasswordHash(passwordEncoder.encode(password));
+    user.setRole(Role.RESIDENT);
+    user.setPreferredLanguage("uk");
+    user.setMustChangePassword(true);
+    user.setEnabled(true);
+    userRepository.saveAndFlush(user);
   }
 }

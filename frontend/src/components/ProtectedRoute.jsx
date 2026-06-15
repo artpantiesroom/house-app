@@ -2,11 +2,13 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useAudit } from '../context/AuditContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import LoadingSpinner from './LoadingSpinner.jsx';
 
 export default function ProtectedRoute({ allowedRoles, allowPasswordChangeRequired = false }) {
   const { user, authReady } = useAuth();
   const { appendAuditLog } = useAudit();
+  const { t } = useLanguage();
   const location = useLocation();
   const loggedDeniedRef = useRef('');
 
@@ -18,7 +20,7 @@ export default function ProtectedRoute({ allowedRoles, allowPasswordChangeRequir
   }, [user, location.pathname, appendAuditLog]);
 
   if (!authReady) {
-    return <main className="grid min-h-screen place-items-center"><LoadingSpinner label="Відновлення сеансу" /></main>;
+    return <main className="grid min-h-screen place-items-center"><LoadingSpinner label={t('restoringSession')} /></main>;
   }
   if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
   if (user.mustChangePassword && !allowPasswordChangeRequired) {
