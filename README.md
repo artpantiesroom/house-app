@@ -36,7 +36,15 @@ Stage 3 announcements and contacts are implemented:
 - frontend integration for admin/resident announcements and contacts
 - bilingual UK/EN announcement and contact fields with frontend fallback to Ukrainian
 
-Maintenance, payments, audit log, incidents, avatar upload, full localization, and PWA behavior remain for later stages.
+Stage 4 maintenance requests are implemented:
+
+- SQLite/Flyway table for resident maintenance requests
+- resident request creation and personal request history
+- administrator request list, filters, status updates, priority updates, responses, and internal notes
+- server-side resident ownership checks
+- frontend integration for resident and administrator maintenance pages
+
+Payments, audit log full migration, incidents, avatar upload, full localization, and PWA behavior remain for later stages.
 
 ## Requirements
 
@@ -131,6 +139,8 @@ Stage 3 seed data includes five announcements: three published records visible t
 
 Stage 3 seed data also includes five building contacts: management company, plumber, electrician, security, and emergency service. The seeder is idempotent and does not create duplicates on restart.
 
+Stage 4 seed data includes eight maintenance requests across the demo residents, including `NEW`, `IN_PROGRESS`, `WAITING_RESIDENT`, `RESOLVED`, and `CANCELLED` statuses, plus urgent and common category examples.
+
 ## Authentication Architecture
 
 - Access token lifetime: 15 minutes.
@@ -219,6 +229,26 @@ GET /api/resident/contacts
 
 Residents can read only published, non-expired announcements and active contacts.
 
+Administrator maintenance requests:
+
+```text
+GET   /api/admin/maintenance-requests
+GET   /api/admin/maintenance-requests/{id}
+PATCH /api/admin/maintenance-requests/{id}
+```
+
+The admin list supports `status`, `category`, `priority`, and `search` filters. Admin updates may change status, priority, `adminResponse`, and `internalNotes`.
+
+Resident maintenance requests:
+
+```text
+GET  /api/resident/maintenance-requests
+POST /api/resident/maintenance-requests
+GET  /api/resident/maintenance-requests/{id}
+```
+
+Residents can create and read only their own requests. Apartment and resident ownership are derived from the authenticated account, not from request body fields.
+
 Role-check endpoints used by Stage 1 tests:
 
 ```text
@@ -288,6 +318,6 @@ npm run build
 - This is not production-certified.
 - No real payment provider is integrated.
 - Avatar upload is not implemented yet; Stage 2 stores only `avatarPath`.
-- Maintenance requests, payments, audit log, and incidents still use mock/local frontend behavior.
-- Full Ukrainian/English localization is not complete; Stage 3 adds localized fields and fallback only for announcements and contacts.
+- Payments, audit log, and incidents still use mock/local frontend behavior.
+- Full Ukrainian/English localization is not complete; Stage 4 adds only maintenance request UI labels.
 - PWA behavior is not implemented yet.

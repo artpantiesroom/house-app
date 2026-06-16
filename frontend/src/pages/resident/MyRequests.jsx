@@ -2,11 +2,7 @@ import { useEffect, useState } from 'react';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
-import StatusBadge from '../../components/StatusBadge.jsx';
-import { sanitizeText } from '../../data/mockData.js';
-import { useAudit } from '../../context/AuditContext.jsx';
-import { useAuth } from '../../context/AuthContext.jsx';
-import { useData } from '../../context/DataContext.jsx';
+import { maintenanceApi } from '../../api/maintenanceApi.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 
 export const requestCategories = [
@@ -20,81 +16,142 @@ export const requestCategories = [
   ['OTHER', 'other'],
 ];
 
+export const requestStatuses = [
+  ['NEW', 'statusNew'],
+  ['IN_PROGRESS', 'statusInProgress'],
+  ['WAITING_RESIDENT', 'statusWaitingResident'],
+  ['RESOLVED', 'statusResolved'],
+  ['CANCELLED', 'statusCancelled'],
+];
+
+export const requestPriorities = [
+  ['LOW', 'priorityLow'],
+  ['NORMAL', 'priorityNormal'],
+  ['HIGH', 'priorityHigh'],
+  ['URGENT', 'priorityUrgent'],
+];
+
 export function getRequestCategoryLabel(category, t) {
-  const normalized = String(category || '').trim().toUpperCase();
-  const legacy = {
-    'САНТЕХНІКА': 'plumbing',
-    'ЕЛЕКТРИКА': 'electricity',
-    'КЛІМАТ-СИСТЕМА': 'heating',
-    'ДОСТУП': 'security',
-    PLUMBING: 'plumbing',
-    ELECTRICITY: 'electricity',
-    HEATING: 'heating',
-    INTERNET: 'internet',
-    ELEVATOR: 'elevator',
-    CLEANING: 'cleaning',
-    SECURITY: 'security',
-    OTHER: 'other',
-  };
-  return legacy[normalized] ? t(legacy[normalized]) : category || t('other');
+  const match = requestCategories.find(([value]) => value === category);
+  return match ? t(match[1]) : category || t('other');
+}
+
+export function getRequestStatusLabel(status, t) {
+  const match = requestStatuses.find(([value]) => value === status);
+  return match ? t(match[1]) : status || t('statusNew');
+}
+
+export function getRequestPriorityLabel(priority, t) {
+  const match = requestPriorities.find(([value]) => value === priority);
+  return match ? t(match[1]) : priority || t('priorityNormal');
 }
 
 export default function MyRequests() {
-  const data = useData();
-  const { user } = useAuth();
   const { t } = useLanguage();
-  const { appendAuditLog } = useAudit();
-  const [ready, setReady] = useState(false);
-  const [form, setForm] = useState({ title: '', category: '', details: '' });
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ title: '', category: '', description: '' });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
-  useEffect(() => { data.loadPageData(true, 800).then(setReady); }, []);
-  const currentResidentId = user.residentId || user.id;
-  const myRequests = data.requests.filter((request) => request.residentId === currentResidentId);
+  const [error, setError] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setRequests(await maintenanceApi.listResident());
+    } catch {
+      setError(t('requestsLoadFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
 
   const validate = () => {
     const next = {};
-    if (!sanitizeText(form.title)) next.title = t('titleRequired');
-    if (!sanitizeText(form.category)) next.category = t('categoryRequired');
-    if (!sanitizeText(form.details)) next.details = t('detailsRequired');
-    if (form.details.length > 280) next.details = t('detailsTooLong');
+    if (!form.title.trim()) next.title = t('titleRequired');
+    if (!form.category) next.category = t('categoryRequired');
+    if (!form.description.trim()) next.description = t('detailsRequired');
+    if (form.description.length > 3000) next.description = t('detailsTooLong');
     setErrors(next);
     return !Object.keys(next).length;
   };
 
   const submit = async (event) => {
     event.preventDefault();
-    if (saving) return;
-    if (!validate()) return;
+    if (saving || !validate()) return;
     setSaving(true);
-    const created = await data.createRequest({ ...form, residentId: currentResidentId });
-    appendAuditLog({ actor: user.email, action: 'REQUEST_CREATED', target: created.id, result: 'SUCCESS' });
-    setForm({ title: '', category: '', details: '' });
-    setSuccess(t('requestSent'));
-    setSaving(false);
+    setSuccess('');
+    setError('');
+    try {
+      const created = await maintenanceApi.createResident({
+        title: form.title.trim(),
+        description: form.description.trim(),
+        category: form.category,
+      });
+      setRequests((current) => [created, ...current]);
+      setForm({ title: '', category: '', description: '' });
+      setSuccess(t('requestSent'));
+    } catch (err) {
+      setError(err.message || t('requestSaveFailed'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const updateField = (field, value) => {
-    setForm({ ...form, [field]: sanitizeText(value) });
+    setForm((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: '' }));
     setSuccess('');
+    setError('');
   };
 
-  if (!ready) return <SkeletonCard rows={6} />;
+  if (loading) return <SkeletonCard rows={6} />;
+
   return (
     <section className="space-y-5">
       <h1 className="text-3xl font-bold">{t('myRequests')}</h1>
       <form onSubmit={submit} className="glass space-y-3 rounded-2xl p-4">
-        <label className="block text-sm">{t('title')}<input value={form.title} onChange={(e) => updateField('title', e.target.value)} className={`focus-ring mt-1 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${errors.title ? 'field-error border-rose-300' : 'border-sky-100/15'}`} />{errors.title && <span className="text-xs normal-case text-rose-200">{errors.title}</span>}</label>
-        <label className="block text-sm">{t('category')}<select value={form.category} onChange={(e) => updateField('category', e.target.value)} className={`focus-ring mt-1 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${errors.category ? 'field-error border-rose-300' : 'border-sky-100/15'}`}><option value=""></option>{requestCategories.map(([value, labelKey]) => <option key={value} value={value}>{t(labelKey)}</option>)}</select>{errors.category && <span className="text-xs normal-case text-rose-200">{errors.category}</span>}</label>
-        <label className="block text-sm">{t('details')}<textarea maxLength={280} value={form.details} onChange={(e) => updateField('details', e.target.value)} className={`focus-ring mt-1 min-h-24 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${errors.details ? 'field-error border-rose-300' : 'border-sky-100/15'}`} />{errors.details && <span className="text-xs text-rose-200">{errors.details}</span>}</label>
+        <label className="block text-sm">{t('title')}<input value={form.title} maxLength={160} onChange={(event) => updateField('title', event.target.value)} className={`focus-ring mt-1 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${errors.title ? 'field-error border-rose-300' : 'border-sky-100/15'}`} />{errors.title && <span className="text-xs normal-case text-rose-200">{errors.title}</span>}</label>
+        <label className="block text-sm">{t('category')}<select value={form.category} onChange={(event) => updateField('category', event.target.value)} className={`focus-ring mt-1 w-full rounded-xl border bg-sky-950/80 px-3 py-2 ${errors.category ? 'field-error border-rose-300' : 'border-sky-100/15'}`}><option value="">{t('category')}</option>{requestCategories.map(([value, labelKey]) => <option key={value} value={value}>{t(labelKey)}</option>)}</select>{errors.category && <span className="text-xs normal-case text-rose-200">{errors.category}</span>}</label>
+        <label className="block text-sm">{t('details')}<textarea maxLength={3000} value={form.description} onChange={(event) => updateField('description', event.target.value)} className={`focus-ring mt-1 min-h-28 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${errors.description ? 'field-error border-rose-300' : 'border-sky-100/15'}`} />{errors.description && <span className="text-xs text-rose-200">{errors.description}</span>}</label>
         {success && <p className="rounded-xl border border-emerald-300/40 bg-emerald-400/10 p-3 text-sm text-emerald-100">{success}</p>}
-        <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold">{saving ? <LoadingSpinner label={t('sending')} /> : t('submitRequest')}</button>
+        {error && <p className="rounded-xl border border-rose-300/40 bg-rose-950/40 p-3 text-sm text-rose-100">{error}</p>}
+        <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60">{saving ? <LoadingSpinner label={t('sending')} /> : t('submitRequest')}</button>
       </form>
       <div className="grid gap-3">
-        {myRequests.length ? myRequests.map((request) => <article key={request.id} className="glass rounded-2xl p-4"><div className="flex items-center justify-between gap-3"><p className="font-semibold">{request.title}</p><StatusBadge status={request.status} /></div><p className="mt-1 text-xs text-sky-100/55">{getRequestCategoryLabel(request.category, t)}</p><p className="mt-2 text-sm text-sky-100/75">{request.details} <DataClassificationBadge level="Internal" /></p></article>) : <div className="glass rounded-2xl p-5 text-sky-100/70">{t('noRequests')}</div>}
+        {requests.length ? requests.map((request) => (
+          <article key={request.id} className="glass rounded-2xl p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-semibold">{request.title}</p>
+                <p className="mt-1 text-xs text-sky-100/55">{request.apartmentNumber || t('apartmentNotAssigned')} · {getRequestCategoryLabel(request.category, t)}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge>{getRequestStatusLabel(request.status, t)}</Badge>
+                <Badge>{getRequestPriorityLabel(request.priority, t)}</Badge>
+              </div>
+            </div>
+            <p className="mt-2 text-sm text-sky-100/75">{request.description} <DataClassificationBadge level="Internal" /></p>
+            {request.adminResponse && <p className="mt-3 rounded-xl border border-emerald-300/30 bg-emerald-400/10 p-3 text-sm text-emerald-50"><span className="font-semibold">{t('adminResponse')}:</span> {request.adminResponse}</p>}
+            <p className="mt-3 text-xs text-sky-100/55">{t('createdAt')}: {formatDate(request.createdAt)} · {t('updatedAt')}: {formatDate(request.updatedAt)}</p>
+          </article>
+        )) : <div className="glass rounded-2xl p-5 text-sky-100/70">{t('noRequests')}</div>}
       </div>
     </section>
   );
+}
+
+function Badge({ children }) {
+  return <span className="rounded-full border border-sky-100/15 bg-sky-950/50 px-2 py-1 text-xs">{children}</span>;
+}
+
+function formatDate(value) {
+  if (!value) return '—';
+  return new Date(value).toLocaleString();
 }

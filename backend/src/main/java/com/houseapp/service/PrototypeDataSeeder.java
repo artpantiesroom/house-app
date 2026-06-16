@@ -7,12 +7,17 @@ import com.houseapp.entity.AnnouncementCategory;
 import com.houseapp.entity.AnnouncementPriority;
 import com.houseapp.entity.AnnouncementStatus;
 import com.houseapp.entity.BuildingContact;
+import com.houseapp.entity.MaintenanceCategory;
+import com.houseapp.entity.MaintenancePriority;
+import com.houseapp.entity.MaintenanceRequest;
+import com.houseapp.entity.MaintenanceStatus;
 import com.houseapp.entity.ResidentProfile;
 import com.houseapp.entity.Role;
 import com.houseapp.entity.User;
 import com.houseapp.repository.AnnouncementRepository;
 import com.houseapp.repository.ApartmentRepository;
 import com.houseapp.repository.BuildingContactRepository;
+import com.houseapp.repository.MaintenanceRequestRepository;
 import com.houseapp.repository.ResidentProfileRepository;
 import com.houseapp.repository.UserRepository;
 import java.math.BigDecimal;
@@ -32,6 +37,7 @@ public class PrototypeDataSeeder implements ApplicationRunner {
   private final ResidentProfileRepository residentProfileRepository;
   private final AnnouncementRepository announcementRepository;
   private final BuildingContactRepository buildingContactRepository;
+  private final MaintenanceRequestRepository maintenanceRequestRepository;
   private final PasswordEncoder passwordEncoder;
 
   public PrototypeDataSeeder(
@@ -40,6 +46,7 @@ public class PrototypeDataSeeder implements ApplicationRunner {
       ResidentProfileRepository residentProfileRepository,
       AnnouncementRepository announcementRepository,
       BuildingContactRepository buildingContactRepository,
+      MaintenanceRequestRepository maintenanceRequestRepository,
       PasswordEncoder passwordEncoder
   ) {
     this.userRepository = userRepository;
@@ -47,6 +54,7 @@ public class PrototypeDataSeeder implements ApplicationRunner {
     this.residentProfileRepository = residentProfileRepository;
     this.announcementRepository = announcementRepository;
     this.buildingContactRepository = buildingContactRepository;
+    this.maintenanceRequestRepository = maintenanceRequestRepository;
     this.passwordEncoder = passwordEncoder;
   }
 
@@ -77,6 +85,7 @@ public class PrototypeDataSeeder implements ApplicationRunner {
 
     seedAnnouncements(admin);
     seedContacts();
+    seedMaintenanceRequests();
   }
 
   private User seedUser(String name, String email, String rawPassword, Role role, boolean mustChangePassword) {
@@ -274,5 +283,50 @@ public class PrototypeDataSeeder implements ApplicationRunner {
     contact.setSortOrder(sortOrder);
     contact.setActive(true);
     buildingContactRepository.save(contact);
+  }
+
+  private void seedMaintenanceRequests() {
+    seedMaintenanceRequest("resident@house.com", "Протікання під мийкою", "Потрібна перевірка сифона на кухні.", MaintenanceCategory.PLUMBING, MaintenancePriority.URGENT, MaintenanceStatus.NEW, null, "Resident reports active leak.");
+    seedMaintenanceRequest("resident@house.com", "Нестабільний інтернет", "Увечері часто зникає підключення.", MaintenanceCategory.INTERNET, MaintenancePriority.NORMAL, MaintenanceStatus.IN_PROGRESS, "Технік перевіряє обладнання провайдера.", "Coordinate with ISP.");
+    seedMaintenanceRequest("olena.resident@house.com", "Не працює розетка", "У кімнаті біля вікна немає живлення.", MaintenanceCategory.ELECTRICITY, MaintenancePriority.HIGH, MaintenanceStatus.NEW, null, "Check breaker and outlet.");
+    seedMaintenanceRequest("olena.resident@house.com", "Планове прибирання поверху", "Потрібне додаткове прибирання після ремонту сусідів.", MaintenanceCategory.CLEANING, MaintenancePriority.LOW, MaintenanceStatus.RESOLVED, "Прибирання виконано.", "Resolved by cleaning team.");
+    seedMaintenanceRequest("andrii.resident@house.com", "Шум у ліфті", "Ліфт видає скрегіт під час руху.", MaintenanceCategory.ELEVATOR, MaintenancePriority.HIGH, MaintenanceStatus.IN_PROGRESS, "Сервісна компанія вже отримала заявку.", "Elevator vendor notified.");
+    seedMaintenanceRequest("iryna.resident@house.com", "Холодні батареї", "У квартирі низька температура, батареї ледь теплі.", MaintenanceCategory.HEATING, MaintenancePriority.HIGH, MaintenanceStatus.WAITING_RESIDENT, "Потрібен доступ до квартири для огляду.", "Waiting for resident availability.");
+    seedMaintenanceRequest("taras.resident@house.com", "Освітлення у підʼїзді", "На другому поверсі не працює світильник.", MaintenanceCategory.ELECTRICITY, MaintenancePriority.NORMAL, MaintenanceStatus.RESOLVED, "Лампу замінено.", "Done by electrician.");
+    seedMaintenanceRequest("taras.resident@house.com", "Підозрілий доступ у двір", "Ворота не закриваються після 22:00.", MaintenanceCategory.SECURITY, MaintenancePriority.NORMAL, MaintenanceStatus.CANCELLED, "Заявку скасовано після перевірки налаштувань.", "False alarm.");
+  }
+
+  private void seedMaintenanceRequest(
+      String residentEmail,
+      String title,
+      String description,
+      MaintenanceCategory category,
+      MaintenancePriority priority,
+      MaintenanceStatus status,
+      String adminResponse,
+      String internalNotes
+  ) {
+    User user = userRepository.findByEmail(residentEmail).orElse(null);
+    if (user == null) {
+      return;
+    }
+    ResidentProfile profile = residentProfileRepository.findByUserId(user.getId()).orElse(null);
+    if (profile == null || maintenanceRequestRepository.existsByTitleIgnoreCaseAndResidentProfileId(title, profile.getId())) {
+      return;
+    }
+    MaintenanceRequest request = new MaintenanceRequest();
+    request.setResidentProfile(profile);
+    request.setApartment(profile.getApartment());
+    request.setTitle(title);
+    request.setDescription(description);
+    request.setCategory(category);
+    request.setPriority(priority);
+    request.setStatus(status);
+    request.setAdminResponse(adminResponse);
+    request.setInternalNotes(internalNotes);
+    if (status == MaintenanceStatus.RESOLVED) {
+      request.setResolvedAt(Instant.now().minus(2, ChronoUnit.DAYS));
+    }
+    maintenanceRequestRepository.save(request);
   }
 }
