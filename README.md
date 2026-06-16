@@ -26,7 +26,17 @@ Stage 2 residents and apartments are implemented:
 - administrator-created residents with temporary passwords and `mustChangePassword=true`
 - avatar path field in the data model
 
-Announcements, maintenance, payments, contacts, audit log, and incidents still use frontend mock data until later stages.
+Stage 3 announcements and contacts are implemented:
+
+- SQLite/Flyway tables for announcements and building contacts
+- administrator announcement CRUD with publish/archive workflow
+- resident read-only published announcement API
+- administrator contact CRUD with soft deactivate
+- resident read-only active contacts API
+- frontend integration for admin/resident announcements and contacts
+- bilingual UK/EN announcement and contact fields with frontend fallback to Ukrainian
+
+Maintenance, payments, audit log, incidents, avatar upload, full localization, and PWA behavior remain for later stages.
 
 ## Requirements
 
@@ -117,6 +127,10 @@ These credentials are for prototype demonstration only.
 
 The seed data also creates four extra prototype residents with apartments and temporary password `TempResident1!`. They are marked as requiring password replacement on first login. These credentials are prototype-only and must not be reused outside local demonstration.
 
+Stage 3 seed data includes five announcements: three published records visible to residents, one draft visible only to administrators, and one archived record visible only to administrators.
+
+Stage 3 seed data also includes five building contacts: management company, plumber, electrician, security, and emergency service. The seeder is idempotent and does not create duplicates on restart.
+
 ## Authentication Architecture
 
 - Access token lifetime: 15 minutes.
@@ -174,6 +188,36 @@ PUT /api/resident/profile
 ```
 
 Residents may update only safe profile fields: phone, emergency contact fields, and preferred language. Apartment assignment, notes, role, email, enabled status, and password-change state remain administrator/server controlled.
+
+Administrator announcements and contacts:
+
+```text
+GET    /api/admin/announcements
+POST   /api/admin/announcements
+GET    /api/admin/announcements/{id}
+PUT    /api/admin/announcements/{id}
+DELETE /api/admin/announcements/{id}
+PATCH  /api/admin/announcements/{id}/publish
+PATCH  /api/admin/announcements/{id}/archive
+
+GET    /api/admin/contacts
+POST   /api/admin/contacts
+GET    /api/admin/contacts/{id}
+PUT    /api/admin/contacts/{id}
+DELETE /api/admin/contacts/{id}
+```
+
+`DELETE /api/admin/announcements/{id}` archives the announcement. `DELETE /api/admin/contacts/{id}` performs a soft deactivate.
+
+Resident announcements and contacts:
+
+```text
+GET /api/resident/announcements
+GET /api/resident/announcements/{id}
+GET /api/resident/contacts
+```
+
+Residents can read only published, non-expired announcements and active contacts.
 
 Role-check endpoints used by Stage 1 tests:
 
@@ -244,5 +288,6 @@ npm run build
 - This is not production-certified.
 - No real payment provider is integrated.
 - Avatar upload is not implemented yet; Stage 2 stores only `avatarPath`.
-- Announcements, maintenance, payments, contacts, full audit log, and incidents still use mock data or Stage 1 placeholders.
-- Full Ukrainian/English localization is planned for a later stage.
+- Maintenance requests, payments, audit log, and incidents still use mock/local frontend behavior.
+- Full Ukrainian/English localization is not complete; Stage 3 adds localized fields and fallback only for announcements and contacts.
+- PWA behavior is not implemented yet.

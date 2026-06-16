@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -26,6 +27,12 @@ public class ApiExceptionHandler {
   @ExceptionHandler(ApiException.class)
   public ResponseEntity<ErrorResponse> api(ApiException exception, HttpServletRequest request) {
     return build(exception.getStatus(), exception.getErrorCode(), exception.getSafeMessage(), request, Map.of());
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> typeMismatch(MethodArgumentTypeMismatchException exception, HttpServletRequest request) {
+    String name = exception.getName();
+    return build(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Invalid value for " + name, request, Map.of(name, "Invalid value"));
   }
 
   @ExceptionHandler({BadCredentialsException.class})

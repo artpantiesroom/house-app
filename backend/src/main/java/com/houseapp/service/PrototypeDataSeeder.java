@@ -2,13 +2,22 @@ package com.houseapp.service;
 
 import com.houseapp.entity.Apartment;
 import com.houseapp.entity.ApartmentStatus;
+import com.houseapp.entity.Announcement;
+import com.houseapp.entity.AnnouncementCategory;
+import com.houseapp.entity.AnnouncementPriority;
+import com.houseapp.entity.AnnouncementStatus;
+import com.houseapp.entity.BuildingContact;
 import com.houseapp.entity.ResidentProfile;
 import com.houseapp.entity.Role;
 import com.houseapp.entity.User;
+import com.houseapp.repository.AnnouncementRepository;
 import com.houseapp.repository.ApartmentRepository;
+import com.houseapp.repository.BuildingContactRepository;
 import com.houseapp.repository.ResidentProfileRepository;
 import com.houseapp.repository.UserRepository;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -21,24 +30,30 @@ public class PrototypeDataSeeder implements ApplicationRunner {
   private final UserRepository userRepository;
   private final ApartmentRepository apartmentRepository;
   private final ResidentProfileRepository residentProfileRepository;
+  private final AnnouncementRepository announcementRepository;
+  private final BuildingContactRepository buildingContactRepository;
   private final PasswordEncoder passwordEncoder;
 
   public PrototypeDataSeeder(
       UserRepository userRepository,
       ApartmentRepository apartmentRepository,
       ResidentProfileRepository residentProfileRepository,
+      AnnouncementRepository announcementRepository,
+      BuildingContactRepository buildingContactRepository,
       PasswordEncoder passwordEncoder
   ) {
     this.userRepository = userRepository;
     this.apartmentRepository = apartmentRepository;
     this.residentProfileRepository = residentProfileRepository;
+    this.announcementRepository = announcementRepository;
+    this.buildingContactRepository = buildingContactRepository;
     this.passwordEncoder = passwordEncoder;
   }
 
   @Override
   @Transactional
   public void run(ApplicationArguments args) {
-    seedUser("Administrator", "admin@house.com", "Admin123!", Role.ADMIN, false);
+    User admin = seedUser("Administrator", "admin@house.com", "Admin123!", Role.ADMIN, false);
     User demoResident = seedUser("Demo Resident", "resident@house.com", "Resident123!", Role.RESIDENT, false);
 
     Apartment apartmentA101 = seedApartment("A", 1, "A-101", "42.50", 1, ApartmentStatus.OCCUPIED);
@@ -59,6 +74,9 @@ public class PrototypeDataSeeder implements ApplicationRunner {
     seedDemoResident("Andrii Shevchenko", "andrii.resident@house.com", "TempResident1!", "B-101", "+380671234502");
     seedDemoResident("Iryna Melnyk", "iryna.resident@house.com", "TempResident1!", "B-201", "+380671234503");
     seedDemoResident("Taras Bondar", "taras.resident@house.com", "TempResident1!", "C-102", "+380671234504");
+
+    seedAnnouncements(admin);
+    seedContacts();
   }
 
   private User seedUser(String name, String email, String rawPassword, Role role, boolean mustChangePassword) {
@@ -123,5 +141,138 @@ public class PrototypeDataSeeder implements ApplicationRunner {
     profile.setAvatarPath(avatarPath);
     profile.setNotes(notes);
     residentProfileRepository.save(profile);
+  }
+
+  private void seedAnnouncements(User admin) {
+    Instant now = Instant.now();
+    seedAnnouncement(
+        admin,
+        "Планове відключення води",
+        "Scheduled water outage",
+        "У середу з 10:00 до 14:00 буде тимчасово припинено водопостачання для планових робіт.",
+        "Water supply will be temporarily unavailable on Wednesday from 10:00 to 14:00 for scheduled work.",
+        AnnouncementCategory.MAINTENANCE,
+        AnnouncementPriority.HIGH,
+        AnnouncementStatus.PUBLISHED,
+        now.minus(2, ChronoUnit.DAYS),
+        now.plus(10, ChronoUnit.DAYS)
+    );
+    seedAnnouncement(
+        admin,
+        "Обслуговування ліфта",
+        "Elevator maintenance",
+        "Ліфт у секції A проходитиме сервісну перевірку у пʼятницю з 09:00 до 12:00.",
+        "The elevator in section A will have service inspection on Friday from 09:00 to 12:00.",
+        AnnouncementCategory.MAINTENANCE,
+        AnnouncementPriority.NORMAL,
+        AnnouncementStatus.PUBLISHED,
+        now.minus(1, ChronoUnit.DAYS),
+        now.plus(14, ChronoUnit.DAYS)
+    );
+    seedAnnouncement(
+        admin,
+        "Збори мешканців",
+        "Residents meeting",
+        "Запрошуємо мешканців на зустріч у холі будинку у суботу о 18:00.",
+        "Residents are invited to a meeting in the building lobby on Saturday at 18:00.",
+        AnnouncementCategory.EVENT,
+        AnnouncementPriority.NORMAL,
+        AnnouncementStatus.PUBLISHED,
+        now.minus(3, ChronoUnit.HOURS),
+        now.plus(20, ChronoUnit.DAYS)
+    );
+    seedAnnouncement(
+        admin,
+        "Нагадування про оплату",
+        "Payment reminder",
+        "Нагадування про необхідність вчасно сплачувати рахунки за обслуговування будинку.",
+        "Reminder to pay building service invoices on time.",
+        AnnouncementCategory.PAYMENT,
+        AnnouncementPriority.LOW,
+        AnnouncementStatus.ARCHIVED,
+        now.minus(30, ChronoUnit.DAYS),
+        now.minus(1, ChronoUnit.DAYS)
+    );
+    seedAnnouncement(
+        admin,
+        "Тестова чернетка",
+        "Test draft",
+        "Чернетка оголошення для перевірки адміністративного інтерфейсу.",
+        "Draft announcement for checking the administrative interface.",
+        AnnouncementCategory.OTHER,
+        AnnouncementPriority.LOW,
+        AnnouncementStatus.DRAFT,
+        null,
+        null
+    );
+  }
+
+  private void seedAnnouncement(
+      User admin,
+      String titleUk,
+      String titleEn,
+      String bodyUk,
+      String bodyEn,
+      AnnouncementCategory category,
+      AnnouncementPriority priority,
+      AnnouncementStatus status,
+      Instant publishedAt,
+      Instant expiresAt
+  ) {
+    if (announcementRepository.existsByTitleUkIgnoreCase(titleUk)) {
+      return;
+    }
+    Announcement announcement = new Announcement();
+    announcement.setTitleUk(titleUk);
+    announcement.setTitleEn(titleEn);
+    announcement.setBodyUk(bodyUk);
+    announcement.setBodyEn(bodyEn);
+    announcement.setCategory(category);
+    announcement.setPriority(priority);
+    announcement.setStatus(status);
+    announcement.setPublishedAt(publishedAt);
+    announcement.setExpiresAt(expiresAt);
+    announcement.setCreatedBy(admin);
+    announcementRepository.save(announcement);
+  }
+
+  private void seedContacts() {
+    seedContact("Керуюча компанія", "Management Company", "Адміністрація", "Administration", "Офіс будинку", "Building office", "+380501110001", "office@house.com", "Пн-Пт 09:00-18:00", "Mon-Fri 09:00-18:00", 10);
+    seedContact("Сантехнік", "Plumber", "Технічна підтримка", "Technical support", "Інженерна служба", "Engineering", "+380501110002", null, "Щодня 08:00-20:00", "Daily 08:00-20:00", 20);
+    seedContact("Електрик", "Electrician", "Технічна підтримка", "Technical support", "Інженерна служба", "Engineering", "+380501110003", "electric@house.com", "Пн-Сб 08:00-19:00", "Mon-Sat 08:00-19:00", 30);
+    seedContact("Охорона", "Security", "Охорона", "Security", "Безпека", "Security", "+380501110004", null, "Цілодобово", "24/7", 40);
+    seedContact("Аварійна служба", "Emergency Service", "Аварійна підтримка", "Emergency support", "Міська служба", "Municipal service", null, "emergency@house.com", "Цілодобово", "24/7", 50);
+  }
+
+  private void seedContact(
+      String nameUk,
+      String nameEn,
+      String roleUk,
+      String roleEn,
+      String departmentUk,
+      String departmentEn,
+      String phone,
+      String email,
+      String availabilityUk,
+      String availabilityEn,
+      int sortOrder
+  ) {
+    if (buildingContactRepository.existsByNameUkIgnoreCase(nameUk)) {
+      return;
+    }
+    BuildingContact contact = new BuildingContact();
+    contact.setNameUk(nameUk);
+    contact.setNameEn(nameEn);
+    contact.setRoleUk(roleUk);
+    contact.setRoleEn(roleEn);
+    contact.setDepartmentUk(departmentUk);
+    contact.setDepartmentEn(departmentEn);
+    contact.setPhone(phone);
+    contact.setEmail(email);
+    contact.setAvailabilityUk(availabilityUk);
+    contact.setAvailabilityEn(availabilityEn);
+    contact.setSortOrder(sortOrder);
+    contact.setActive(true);
+    buildingContactRepository.save(contact);
   }
 }
