@@ -3,10 +3,13 @@ package com.houseapp.controller;
 import com.houseapp.dto.request.admin.AdminResidentCreateRequest;
 import com.houseapp.dto.request.admin.AdminResidentUpdateRequest;
 import com.houseapp.dto.response.admin.AdminResidentResponse;
+import com.houseapp.security.UserPrincipal;
 import com.houseapp.service.ResidentProfileService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,8 +36,12 @@ public class AdminResidentController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public AdminResidentResponse create(@Valid @RequestBody AdminResidentCreateRequest request) {
-    return residentProfileService.create(request);
+  public AdminResidentResponse create(
+      @Valid @RequestBody AdminResidentCreateRequest request,
+      @AuthenticationPrincipal UserPrincipal principal,
+      HttpServletRequest servletRequest
+  ) {
+    return residentProfileService.create(request, principal, servletRequest);
   }
 
   @GetMapping("/{id}")
@@ -43,13 +50,22 @@ public class AdminResidentController {
   }
 
   @PutMapping("/{id}")
-  public AdminResidentResponse update(@PathVariable Long id, @Valid @RequestBody AdminResidentUpdateRequest request) {
-    return residentProfileService.update(id, request);
+  public AdminResidentResponse update(
+      @PathVariable Long id,
+      @Valid @RequestBody AdminResidentUpdateRequest request,
+      @AuthenticationPrincipal UserPrincipal principal,
+      HttpServletRequest servletRequest
+  ) {
+    return residentProfileService.update(id, request, principal, servletRequest);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deactivate(@PathVariable Long id) {
-    residentProfileService.deactivate(id);
+  public void deactivate(
+      @PathVariable Long id,
+      @AuthenticationPrincipal UserPrincipal principal,
+      HttpServletRequest servletRequest
+  ) {
+    residentProfileService.deactivate(id, principal, servletRequest);
   }
 }

@@ -8,6 +8,7 @@ import com.houseapp.dto.response.AuthResponse;
 import com.houseapp.dto.response.UserResponse;
 import com.houseapp.security.UserPrincipal;
 import com.houseapp.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,8 +28,8 @@ public class AuthController {
   }
 
   @PostMapping("/login")
-  public AuthResponse login(@Valid @RequestBody LoginRequest request) {
-    return authService.login(request);
+  public AuthResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
+    return authService.login(request, servletRequest);
   }
 
   @PostMapping("/refresh")
@@ -37,17 +38,22 @@ public class AuthController {
   }
 
   @PostMapping("/logout")
-  public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest request) {
-    authService.logout(request.refreshToken());
+  public ResponseEntity<Void> logout(
+      @Valid @RequestBody LogoutRequest request,
+      @AuthenticationPrincipal UserPrincipal principal,
+      HttpServletRequest servletRequest
+  ) {
+    authService.logout(request.refreshToken(), principal, servletRequest);
     return ResponseEntity.noContent().build();
   }
 
   @PostMapping("/change-password")
   public AuthResponse changePassword(
       @Valid @RequestBody ChangePasswordRequest request,
-      @AuthenticationPrincipal UserPrincipal principal
+      @AuthenticationPrincipal UserPrincipal principal,
+      HttpServletRequest servletRequest
   ) {
-    return authService.changePassword(request, principal);
+    return authService.changePassword(request, principal, servletRequest);
   }
 
   @GetMapping("/me")

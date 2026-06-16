@@ -4,6 +4,7 @@ import com.houseapp.dto.request.resident.MaintenanceRequestCreateRequest;
 import com.houseapp.dto.response.resident.MaintenanceRequestResidentResponse;
 import com.houseapp.security.UserPrincipal;
 import com.houseapp.service.MaintenanceRequestService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -34,9 +35,10 @@ public class ResidentMaintenanceRequestController {
   @ResponseStatus(HttpStatus.CREATED)
   public MaintenanceRequestResidentResponse create(
       @AuthenticationPrincipal UserPrincipal principal,
-      @Valid @RequestBody MaintenanceRequestCreateRequest request
+      @Valid @RequestBody MaintenanceRequestCreateRequest request,
+      HttpServletRequest servletRequest
   ) {
-    return maintenanceRequestService.createForResident(principal, request);
+    return maintenanceRequestService.createForResident(principal, request, servletRequest);
   }
 
   @GetMapping("/{id}")

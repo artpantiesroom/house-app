@@ -7,6 +7,7 @@ import com.houseapp.entity.PaymentStatus;
 import com.houseapp.entity.PaymentType;
 import com.houseapp.security.UserPrincipal;
 import com.houseapp.service.PaymentService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -49,9 +50,10 @@ public class AdminPaymentController {
   @ResponseStatus(HttpStatus.CREATED)
   public PaymentAdminResponse create(
       @Valid @RequestBody PaymentRequest request,
-      @AuthenticationPrincipal UserPrincipal principal
+      @AuthenticationPrincipal UserPrincipal principal,
+      HttpServletRequest servletRequest
   ) {
-    return paymentService.create(request, principal);
+    return paymentService.create(request, principal, servletRequest);
   }
 
   @GetMapping("/{id}")
@@ -60,18 +62,32 @@ public class AdminPaymentController {
   }
 
   @PutMapping("/{id}")
-  public PaymentAdminResponse update(@PathVariable Long id, @Valid @RequestBody PaymentRequest request) {
-    return paymentService.update(id, request);
+  public PaymentAdminResponse update(
+      @PathVariable Long id,
+      @Valid @RequestBody PaymentRequest request,
+      @AuthenticationPrincipal UserPrincipal principal,
+      HttpServletRequest servletRequest
+  ) {
+    return paymentService.update(id, request, principal, servletRequest);
   }
 
   @PatchMapping("/{id}/status")
-  public PaymentAdminResponse updateStatus(@PathVariable Long id, @Valid @RequestBody PaymentStatusUpdateRequest request) {
-    return paymentService.updateStatus(id, request);
+  public PaymentAdminResponse updateStatus(
+      @PathVariable Long id,
+      @Valid @RequestBody PaymentStatusUpdateRequest request,
+      @AuthenticationPrincipal UserPrincipal principal,
+      HttpServletRequest servletRequest
+  ) {
+    return paymentService.updateStatus(id, request, principal, servletRequest);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void cancel(@PathVariable Long id) {
-    paymentService.cancel(id);
+  public void cancel(
+      @PathVariable Long id,
+      @AuthenticationPrincipal UserPrincipal principal,
+      HttpServletRequest servletRequest
+  ) {
+    paymentService.cancel(id, principal, servletRequest);
   }
 }

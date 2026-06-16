@@ -2,6 +2,9 @@ package com.houseapp.service;
 
 import com.houseapp.entity.Apartment;
 import com.houseapp.entity.ApartmentStatus;
+import com.houseapp.entity.AuditAction;
+import com.houseapp.entity.AuditEntityType;
+import com.houseapp.entity.AuditLog;
 import com.houseapp.entity.Announcement;
 import com.houseapp.entity.AnnouncementCategory;
 import com.houseapp.entity.AnnouncementPriority;
@@ -17,13 +20,19 @@ import com.houseapp.entity.PaymentStatus;
 import com.houseapp.entity.PaymentType;
 import com.houseapp.entity.ResidentProfile;
 import com.houseapp.entity.Role;
+import com.houseapp.entity.SecurityIncident;
+import com.houseapp.entity.SecurityIncidentCategory;
+import com.houseapp.entity.SecurityIncidentSeverity;
+import com.houseapp.entity.SecurityIncidentStatus;
 import com.houseapp.entity.User;
+import com.houseapp.repository.AuditLogRepository;
 import com.houseapp.repository.AnnouncementRepository;
 import com.houseapp.repository.ApartmentRepository;
 import com.houseapp.repository.BuildingContactRepository;
 import com.houseapp.repository.MaintenanceRequestRepository;
 import com.houseapp.repository.PaymentRepository;
 import com.houseapp.repository.ResidentProfileRepository;
+import com.houseapp.repository.SecurityIncidentRepository;
 import com.houseapp.repository.UserRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -45,6 +54,8 @@ public class PrototypeDataSeeder implements ApplicationRunner {
   private final BuildingContactRepository buildingContactRepository;
   private final MaintenanceRequestRepository maintenanceRequestRepository;
   private final PaymentRepository paymentRepository;
+  private final AuditLogRepository auditLogRepository;
+  private final SecurityIncidentRepository securityIncidentRepository;
   private final PasswordEncoder passwordEncoder;
 
   public PrototypeDataSeeder(
@@ -55,6 +66,8 @@ public class PrototypeDataSeeder implements ApplicationRunner {
       BuildingContactRepository buildingContactRepository,
       MaintenanceRequestRepository maintenanceRequestRepository,
       PaymentRepository paymentRepository,
+      AuditLogRepository auditLogRepository,
+      SecurityIncidentRepository securityIncidentRepository,
       PasswordEncoder passwordEncoder
   ) {
     this.userRepository = userRepository;
@@ -64,6 +77,8 @@ public class PrototypeDataSeeder implements ApplicationRunner {
     this.buildingContactRepository = buildingContactRepository;
     this.maintenanceRequestRepository = maintenanceRequestRepository;
     this.paymentRepository = paymentRepository;
+    this.auditLogRepository = auditLogRepository;
+    this.securityIncidentRepository = securityIncidentRepository;
     this.passwordEncoder = passwordEncoder;
   }
 
@@ -96,6 +111,8 @@ public class PrototypeDataSeeder implements ApplicationRunner {
     seedContacts();
     seedMaintenanceRequests();
     seedPayments(admin);
+    seedAuditLogs(admin, demoResident);
+    seedSecurityIncidents(admin, demoResident);
   }
 
   private User seedUser(String name, String email, String rawPassword, Role role, boolean mustChangePassword) {
@@ -396,5 +413,92 @@ public class PrototypeDataSeeder implements ApplicationRunner {
       payment.setPaidAt(Instant.now().minus(1, ChronoUnit.DAYS));
     }
     paymentRepository.save(payment);
+  }
+
+  private void seedAuditLogs(User admin, User resident) {
+    seedAuditLog(admin, AuditAction.LOGIN_SUCCESS, AuditEntityType.AUTH, admin.getId(), "Administrator demo login succeeded", "{\"source\":\"seed\"}", Instant.now().minus(12, ChronoUnit.DAYS));
+    seedAuditLog(resident, AuditAction.LOGIN_SUCCESS, AuditEntityType.AUTH, resident.getId(), "Resident demo login succeeded", "{\"source\":\"seed\"}", Instant.now().minus(11, ChronoUnit.DAYS));
+    seedAuditLog(null, AuditAction.LOGIN_FAILED, AuditEntityType.AUTH, null, "Failed login for unknown user", "{\"email\":\"unknown@example.com\"}", Instant.now().minus(10, ChronoUnit.DAYS));
+    seedAuditLog(admin, AuditAction.RESIDENT_CREATED, AuditEntityType.RESIDENT, 1L, "Resident profile created from seed", "{\"source\":\"seed\"}", Instant.now().minus(9, ChronoUnit.DAYS));
+    seedAuditLog(admin, AuditAction.RESIDENT_UPDATED, AuditEntityType.RESIDENT, 1L, "Resident profile updated from seed", "{\"source\":\"seed\"}", Instant.now().minus(8, ChronoUnit.DAYS));
+    seedAuditLog(admin, AuditAction.APARTMENT_UPDATED, AuditEntityType.APARTMENT, 1L, "Apartment occupancy updated", "{\"apartment\":\"A-101\"}", Instant.now().minus(7, ChronoUnit.DAYS));
+    seedAuditLog(admin, AuditAction.ANNOUNCEMENT_PUBLISHED, AuditEntityType.ANNOUNCEMENT, 1L, "Water outage announcement published", "{\"classification\":\"Public\"}", Instant.now().minus(6, ChronoUnit.DAYS));
+    seedAuditLog(admin, AuditAction.CONTACT_UPDATED, AuditEntityType.CONTACT, 1L, "Management company contact updated", "{\"source\":\"seed\"}", Instant.now().minus(5, ChronoUnit.DAYS));
+    seedAuditLog(resident, AuditAction.MAINTENANCE_CREATED, AuditEntityType.MAINTENANCE_REQUEST, 1L, "Maintenance request created by resident", "{\"category\":\"PLUMBING\"}", Instant.now().minus(4, ChronoUnit.DAYS));
+    seedAuditLog(admin, AuditAction.MAINTENANCE_UPDATED, AuditEntityType.MAINTENANCE_REQUEST, 1L, "Maintenance request moved to in progress", "{\"status\":\"IN_PROGRESS\"}", Instant.now().minus(3, ChronoUnit.DAYS));
+    seedAuditLog(admin, AuditAction.PAYMENT_CREATED, AuditEntityType.PAYMENT, 1L, "Payment record created", "{\"amountMinor\":125000}", Instant.now().minus(2, ChronoUnit.DAYS));
+    seedAuditLog(admin, AuditAction.PAYMENT_STATUS_CHANGED, AuditEntityType.PAYMENT, 2L, "Payment status changed to PAID", "{\"status\":\"PAID\"}", Instant.now().minus(36, ChronoUnit.HOURS));
+    seedAuditLog(admin, AuditAction.PAYMENT_CANCELLED, AuditEntityType.PAYMENT, 10L, "Payment cancelled", "{\"status\":\"CANCELLED\"}", Instant.now().minus(24, ChronoUnit.HOURS));
+    seedAuditLog(admin, AuditAction.SECURITY_INCIDENT_CREATED, AuditEntityType.SECURITY_INCIDENT, 1L, "Security incident created from seed", "{\"severity\":\"HIGH\"}", Instant.now().minus(18, ChronoUnit.HOURS));
+    seedAuditLog(null, AuditAction.SECURITY_INCIDENT_RESOLVED, AuditEntityType.SYSTEM, null, "System audit seed event", "{\"source\":\"system\"}", Instant.now().minus(12, ChronoUnit.HOURS));
+  }
+
+  private void seedAuditLog(
+      User actor,
+      AuditAction action,
+      AuditEntityType entityType,
+      Long entityId,
+      String summary,
+      String metadataJson,
+      Instant createdAt
+  ) {
+    if (auditLogRepository.existsByActionAndEntityTypeAndEntityIdAndSummary(action, entityType, entityId, summary)) {
+      return;
+    }
+    AuditLog auditLog = new AuditLog();
+    auditLog.setActorUser(actor);
+    auditLog.setActorEmail(actor == null ? "system" : actor.getEmail());
+    auditLog.setActorRole(actor == null ? "SYSTEM" : actor.getRole().name());
+    auditLog.setAction(action);
+    auditLog.setEntityType(entityType);
+    auditLog.setEntityId(entityId);
+    auditLog.setSummary(summary);
+    auditLog.setMetadataJson(metadataJson);
+    auditLog.setIpAddress("127.0.0.1");
+    auditLog.setUserAgent("PrototypeDataSeeder");
+    auditLog.setCreatedAt(createdAt);
+    auditLogRepository.save(auditLog);
+  }
+
+  private void seedSecurityIncidents(User admin, User resident) {
+    AuditLog relatedLog = auditLogRepository.search(AuditAction.LOGIN_FAILED, AuditEntityType.AUTH, null, null, null, null, null)
+        .stream()
+        .findFirst()
+        .orElse(null);
+    seedSecurityIncident("Repeated failed login attempts", "Several failed authentication attempts were observed for a non-existing account.", SecurityIncidentSeverity.HIGH, SecurityIncidentStatus.OPEN, SecurityIncidentCategory.AUTHENTICATION, null, admin, relatedLog, null);
+    seedSecurityIncident("Resident route authorization review", "A resident attempted to open an administrator route during prototype testing.", SecurityIncidentSeverity.MEDIUM, SecurityIncidentStatus.INVESTIGATING, SecurityIncidentCategory.AUTHORIZATION, resident, admin, null, null);
+    seedSecurityIncident("Payment record visibility check", "Administrator verified that resident payment records are isolated by owner.", SecurityIncidentSeverity.LOW, SecurityIncidentStatus.RESOLVED, SecurityIncidentCategory.PAYMENT, admin, admin, null, "Visibility rule confirmed.");
+    seedSecurityIncident("Suspicious maintenance note", "A maintenance request looked suspicious but was confirmed as a training data artifact.", SecurityIncidentSeverity.LOW, SecurityIncidentStatus.FALSE_POSITIVE, SecurityIncidentCategory.MAINTENANCE, null, admin, null, "False positive in seeded prototype data.");
+    seedSecurityIncident("Critical system configuration drill", "Prototype drill for reviewing JWT and CORS configuration after tunnel exposure.", SecurityIncidentSeverity.CRITICAL, SecurityIncidentStatus.INVESTIGATING, SecurityIncidentCategory.SYSTEM, admin, admin, null, null);
+  }
+
+  private void seedSecurityIncident(
+      String title,
+      String description,
+      SecurityIncidentSeverity severity,
+      SecurityIncidentStatus status,
+      SecurityIncidentCategory category,
+      User reportedBy,
+      User assignedTo,
+      AuditLog relatedAuditLog,
+      String resolutionNotes
+  ) {
+    if (securityIncidentRepository.existsByTitleIgnoreCase(title)) {
+      return;
+    }
+    SecurityIncident incident = new SecurityIncident();
+    incident.setTitle(title);
+    incident.setDescription(description);
+    incident.setSeverity(severity);
+    incident.setStatus(status);
+    incident.setCategory(category);
+    incident.setReportedBy(reportedBy);
+    incident.setAssignedTo(assignedTo);
+    incident.setRelatedAuditLog(relatedAuditLog);
+    incident.setResolutionNotes(resolutionNotes);
+    if (status == SecurityIncidentStatus.RESOLVED || status == SecurityIncidentStatus.FALSE_POSITIVE) {
+      incident.setResolvedAt(Instant.now().minus(6, ChronoUnit.HOURS));
+    }
+    securityIncidentRepository.save(incident);
   }
 }

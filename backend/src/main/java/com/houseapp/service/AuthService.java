@@ -5,13 +5,17 @@ import com.houseapp.dto.request.LoginRequest;
 import com.houseapp.dto.request.RefreshRequest;
 import com.houseapp.dto.response.AuthResponse;
 import com.houseapp.dto.response.UserResponse;
+import com.houseapp.entity.AuditAction;
+import com.houseapp.entity.AuditEntityType;
 import com.houseapp.entity.User;
 import com.houseapp.exception.ApiException;
 import com.houseapp.mapper.UserMapper;
 import com.houseapp.repository.UserRepository;
 import com.houseapp.security.JwtService;
 import com.houseapp.security.UserPrincipal;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Locale;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,6 +35,7 @@ public class AuthService {
   private final JwtService jwtService;
   private final RefreshTokenService refreshTokenService;
   private final UserMapper userMapper;
+  private final AuditLogService auditLogService;
 
   public AuthService(
       AuthenticationManager authenticationManager,
@@ -39,7 +44,8 @@ public class AuthService {
       PasswordPolicyService passwordPolicyService,
       JwtService jwtService,
       RefreshTokenService refreshTokenService,
-      UserMapper userMapper
+      UserMapper userMapper,
+      AuditLogService auditLogService
   ) {
     this.authenticationManager = authenticationManager;
     this.userRepository = userRepository;
@@ -48,22 +54,25 @@ public class AuthService {
     this.jwtService = jwtService;
     this.refreshTokenService = refreshTokenService;
     this.userMapper = userMapper;
+    this.auditLogService = auditLogService;
   }
 
-  @Transactional
-  public AuthResponse login(LoginRequest request) {
+  public AuthResponse login(LoginRequest request, HttpServletRequest servletRequest) {
     String email = normalizeEmail(request.email());
     try {
       authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, request.password()));
     } catch (RuntimeException exception) {
+      auditLogService.recordSystem(AuditAction.LOGIN_FAILED, AuditEntityType.AUTH, null, "Login failed for " + email, Map.of("email", email));
       throw new BadCredentialsException("Invalid credentials");
     }
     User user = userRepository.findByEmail(email).orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
     if (!user.isEnabled()) {
+      auditLogService.recordUser(user, AuditAction.LOGIN_FAILED, AuditEntityType.AUTH, user.getId(), "Login failed for disabled user " + email, Map.of("email", email), servletRequest);
       throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Invalid credentials");
     }
     user.setLastLoginAt(Instant.now());
     userRepository.save(user);
+    auditLogService.recordUser(user, AuditAction.LOGIN_SUCCESS, AuditEntityType.AUTH, user.getId(), "Login successful for " + email, Map.of("rememberMe", request.rememberMe()), servletRequest);
     return issueAuthResponse(user, request.rememberMe());
   }
 
@@ -74,12 +83,13 @@ public class AuthService {
   }
 
   @Transactional
-  public void logout(String refreshToken) {
+  public void logout(String refreshToken, UserPrincipal principal, HttpServletRequest servletRequest) {
     refreshTokenService.revoke(refreshToken);
+    auditLogService.record(principal, AuditAction.LOGOUT, AuditEntityType.AUTH, principal == null ? null : principal.getId(), "Logout completed", Map.of(), servletRequest);
   }
 
   @Transactional
-  public AuthResponse changePassword(ChangePasswordRequest request, UserPrincipal principal) {
+  public AuthResponse changePassword(ChangePasswordRequest request, UserPrincipal principal, HttpServletRequest servletRequest) {
     passwordPolicyService.validate(request.newPassword());
     User user = userRepository.findById(principal.getId())
         .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Authentication required"));
@@ -90,6 +100,7 @@ public class AuthService {
     user.setMustChangePassword(false);
     userRepository.save(user);
     refreshTokenService.revokeAllForUser(user.getId());
+    auditLogService.recordUser(user, AuditAction.PASSWORD_CHANGED, AuditEntityType.USER, user.getId(), "Password changed", Map.of(), servletRequest);
     return issueAuthResponse(user, false);
   }
 

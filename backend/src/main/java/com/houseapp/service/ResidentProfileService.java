@@ -5,6 +5,8 @@ import com.houseapp.dto.request.admin.AdminResidentUpdateRequest;
 import com.houseapp.dto.request.resident.ResidentProfileUpdateRequest;
 import com.houseapp.dto.response.admin.AdminResidentResponse;
 import com.houseapp.dto.response.resident.ResidentProfileResponse;
+import com.houseapp.entity.AuditAction;
+import com.houseapp.entity.AuditEntityType;
 import com.houseapp.entity.Apartment;
 import com.houseapp.entity.ApartmentStatus;
 import com.houseapp.entity.ResidentProfile;
@@ -16,8 +18,10 @@ import com.houseapp.repository.ApartmentRepository;
 import com.houseapp.repository.ResidentProfileRepository;
 import com.houseapp.repository.UserRepository;
 import com.houseapp.security.UserPrincipal;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,6 +35,7 @@ public class ResidentProfileService {
   private final PasswordEncoder passwordEncoder;
   private final PasswordPolicyService passwordPolicyService;
   private final ResidentProfileMapper residentProfileMapper;
+  private final AuditLogService auditLogService;
 
   public ResidentProfileService(
       ResidentProfileRepository residentProfileRepository,
@@ -38,7 +43,8 @@ public class ResidentProfileService {
       UserRepository userRepository,
       PasswordEncoder passwordEncoder,
       PasswordPolicyService passwordPolicyService,
-      ResidentProfileMapper residentProfileMapper
+      ResidentProfileMapper residentProfileMapper,
+      AuditLogService auditLogService
   ) {
     this.residentProfileRepository = residentProfileRepository;
     this.apartmentRepository = apartmentRepository;
@@ -46,6 +52,7 @@ public class ResidentProfileService {
     this.passwordEncoder = passwordEncoder;
     this.passwordPolicyService = passwordPolicyService;
     this.residentProfileMapper = residentProfileMapper;
+    this.auditLogService = auditLogService;
   }
 
   @Transactional(readOnly = true)
@@ -61,7 +68,7 @@ public class ResidentProfileService {
   }
 
   @Transactional
-  public AdminResidentResponse create(AdminResidentCreateRequest request) {
+  public AdminResidentResponse create(AdminResidentCreateRequest request, UserPrincipal principal, HttpServletRequest servletRequest) {
     passwordPolicyService.validate(request.temporaryPassword());
     String email = normalizeEmail(request.email());
     if (userRepository.existsByEmail(email)) {
@@ -89,11 +96,13 @@ public class ResidentProfileService {
     userRepository.save(user);
     ResidentProfile saved = residentProfileRepository.save(profile);
     updateApartmentStatuses();
+    auditLogService.record(principal, AuditAction.RESIDENT_CREATED, AuditEntityType.RESIDENT, saved.getId(),
+        "Resident created: " + user.getEmail(), Map.of("residentUserId", user.getId()), servletRequest);
     return residentProfileMapper.toAdminResponse(saved);
   }
 
   @Transactional
-  public AdminResidentResponse update(Long id, AdminResidentUpdateRequest request) {
+  public AdminResidentResponse update(Long id, AdminResidentUpdateRequest request, UserPrincipal principal, HttpServletRequest servletRequest) {
     ResidentProfile profile = findProfile(id);
     User user = profile.getUser();
     String email = normalizeEmail(request.email());
@@ -116,16 +125,20 @@ public class ResidentProfileService {
     profile.setNotes(cleanNullable(request.notes()));
     ResidentProfile saved = residentProfileRepository.save(profile);
     updateApartmentStatuses();
+    auditLogService.record(principal, AuditAction.RESIDENT_UPDATED, AuditEntityType.RESIDENT, saved.getId(),
+        "Resident updated: " + user.getEmail(), Map.of("residentUserId", user.getId(), "enabled", user.isEnabled()), servletRequest);
     return residentProfileMapper.toAdminResponse(saved);
   }
 
   @Transactional
-  public void deactivate(Long id) {
+  public void deactivate(Long id, UserPrincipal principal, HttpServletRequest servletRequest) {
     ResidentProfile profile = findProfile(id);
     profile.getUser().setEnabled(false);
     profile.setApartment(null);
     residentProfileRepository.save(profile);
     updateApartmentStatuses();
+    auditLogService.record(principal, AuditAction.RESIDENT_DEACTIVATED, AuditEntityType.RESIDENT, profile.getId(),
+        "Resident deactivated: " + profile.getUser().getEmail(), Map.of("residentUserId", profile.getUser().getId()), servletRequest);
   }
 
   @Transactional(readOnly = true)

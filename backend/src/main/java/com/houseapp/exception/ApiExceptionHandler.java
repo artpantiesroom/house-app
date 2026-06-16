@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,6 +35,16 @@ public class ApiExceptionHandler {
   public ResponseEntity<ErrorResponse> typeMismatch(MethodArgumentTypeMismatchException exception, HttpServletRequest request) {
     String name = exception.getName();
     return build(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Invalid value for " + name, request, Map.of(name, "Invalid value"));
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<ErrorResponse> unreadableMessage(HttpMessageNotReadableException exception, HttpServletRequest request) {
+    return build(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Invalid request body", request, Map.of());
+  }
+
+  @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+  public ResponseEntity<ErrorResponse> methodNotSupported(HttpRequestMethodNotSupportedException exception, HttpServletRequest request) {
+    return build(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED", "HTTP method is not supported for this endpoint", request, Map.of());
   }
 
   @ExceptionHandler({BadCredentialsException.class})

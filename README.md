@@ -52,7 +52,15 @@ Stage 5 payments are implemented:
 - money stored as integer minor units, for example `125000 = 1250.00 UAH`
 - frontend integration for resident and administrator payment pages
 
-Audit log full migration, incidents, avatar upload, full localization, and PWA behavior remain for later stages.
+Stage 6 audit log and security incidents are implemented:
+
+- SQLite/Flyway tables for append-only audit records and security incident records
+- administrator read-only audit log API with filters
+- administrator security incident management API with create, edit, status update, and soft false-positive close
+- audit events for authentication, residents, maintenance, payments, and security incident operations
+- frontend integration for administrator audit log and incidents pages
+
+Avatar upload, full localization, and PWA behavior remain for later stages.
 
 ## Requirements
 
@@ -150,6 +158,8 @@ Stage 3 seed data also includes five building contacts: management company, plum
 Stage 4 seed data includes eight maintenance requests across the demo residents, including `NEW`, `IN_PROGRESS`, `WAITING_RESIDENT`, `RESOLVED`, and `CANCELLED` statuses, plus urgent and common category examples.
 
 Stage 5 seed data includes twelve payment records across demo residents and apartments, with `PENDING`, `PAID`, `OVERDUE`, and `CANCELLED` statuses, several months, and multiple payment types.
+
+Stage 6 seed data includes at least fifteen audit log records across authentication, resident, announcement, contact, maintenance, payment, incident, and system events. It also includes five security incidents covering `OPEN`, `INVESTIGATING`, `RESOLVED`, `FALSE_POSITIVE`, and high/critical severity examples. The seeder is idempotent and does not create duplicates on restart.
 
 ## Authentication Architecture
 
@@ -281,6 +291,28 @@ GET /api/resident/payments/{id}
 
 Residents can read only their own payment records. Payment records are prototype accounting records only; no real payment processing is integrated.
 
+Administrator audit logs:
+
+```text
+GET /api/admin/audit-logs
+GET /api/admin/audit-logs/{id}
+```
+
+The audit list supports `action`, `entityType`, `actorUserId`, `entityId`, `dateFrom`, `dateTo`, and `search` filters. Audit logs are append-only through the public API: there are no public create, update, or delete audit log endpoints.
+
+Administrator security incidents:
+
+```text
+GET    /api/admin/security-incidents
+POST   /api/admin/security-incidents
+GET    /api/admin/security-incidents/{id}
+PUT    /api/admin/security-incidents/{id}
+PATCH  /api/admin/security-incidents/{id}/status
+DELETE /api/admin/security-incidents/{id}
+```
+
+The incident list supports `severity`, `status`, `category`, `assignedToUserId`, `dateFrom`, `dateTo`, and `search` filters. `DELETE` is a soft close that marks the incident as `FALSE_POSITIVE` and sets `resolvedAt`; it does not hard delete the record.
+
 Role-check endpoints used by Stage 1 tests:
 
 ```text
@@ -350,6 +382,6 @@ npm run build
 - This is not production-certified.
 - No real payment provider is integrated.
 - Avatar upload is not implemented yet; Stage 2 stores only `avatarPath`.
-- Audit log and incidents still use mock/local frontend behavior.
-- Full Ukrainian/English localization is not complete; Stage 5 adds only payment UI labels.
+- No production SIEM, monitoring pipeline, or incident automation is integrated.
+- Full Ukrainian/English localization is not complete; Stage 6 adds only audit and incident UI labels on top of earlier stage labels.
 - PWA behavior is not implemented yet.

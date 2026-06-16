@@ -4,6 +4,8 @@ import com.houseapp.dto.request.admin.PaymentRequest;
 import com.houseapp.dto.request.admin.PaymentStatusUpdateRequest;
 import com.houseapp.dto.response.admin.PaymentAdminResponse;
 import com.houseapp.dto.response.resident.PaymentResidentResponse;
+import com.houseapp.entity.AuditAction;
+import com.houseapp.entity.AuditEntityType;
 import com.houseapp.entity.Payment;
 import com.houseapp.entity.PaymentCurrency;
 import com.houseapp.entity.PaymentStatus;
@@ -16,8 +18,10 @@ import com.houseapp.repository.PaymentRepository;
 import com.houseapp.repository.ResidentProfileRepository;
 import com.houseapp.repository.UserRepository;
 import com.houseapp.security.UserPrincipal;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,17 +32,20 @@ public class PaymentService {
   private final ResidentProfileRepository residentProfileRepository;
   private final UserRepository userRepository;
   private final PaymentMapper paymentMapper;
+  private final AuditLogService auditLogService;
 
   public PaymentService(
       PaymentRepository paymentRepository,
       ResidentProfileRepository residentProfileRepository,
       UserRepository userRepository,
-      PaymentMapper paymentMapper
+      PaymentMapper paymentMapper,
+      AuditLogService auditLogService
   ) {
     this.paymentRepository = paymentRepository;
     this.residentProfileRepository = residentProfileRepository;
     this.userRepository = userRepository;
     this.paymentMapper = paymentMapper;
+    this.auditLogService = auditLogService;
   }
 
   @Transactional(readOnly = true)
@@ -79,11 +86,14 @@ public class PaymentService {
   }
 
   @Transactional
-  public PaymentAdminResponse create(PaymentRequest request, UserPrincipal principal) {
+  public PaymentAdminResponse create(PaymentRequest request, UserPrincipal principal, HttpServletRequest servletRequest) {
     Payment payment = new Payment();
     payment.setCreatedBy(findUser(principal.getId()));
     applyRequest(payment, request);
-    return paymentMapper.toAdminResponse(paymentRepository.save(payment));
+    Payment saved = paymentRepository.save(payment);
+    auditLogService.record(principal, AuditAction.PAYMENT_CREATED, AuditEntityType.PAYMENT, saved.getId(),
+        "Payment created: " + saved.getTitleUk(), Map.of("status", saved.getStatus(), "amountMinor", saved.getAmountMinor()), servletRequest);
+    return paymentMapper.toAdminResponse(saved);
   }
 
   @Transactional(readOnly = true)
@@ -92,24 +102,36 @@ public class PaymentService {
   }
 
   @Transactional
-  public PaymentAdminResponse update(Long id, PaymentRequest request) {
+  public PaymentAdminResponse update(Long id, PaymentRequest request, UserPrincipal principal, HttpServletRequest servletRequest) {
     Payment payment = findPayment(id);
+    PaymentStatus previousStatus = payment.getStatus();
     applyRequest(payment, request);
-    return paymentMapper.toAdminResponse(paymentRepository.save(payment));
+    Payment saved = paymentRepository.save(payment);
+    AuditAction action = previousStatus != saved.getStatus() ? AuditAction.PAYMENT_STATUS_CHANGED : AuditAction.PAYMENT_UPDATED;
+    auditLogService.record(principal, action, AuditEntityType.PAYMENT, saved.getId(),
+        "Payment updated: " + saved.getTitleUk(), Map.of("previousStatus", previousStatus, "status", saved.getStatus()), servletRequest);
+    return paymentMapper.toAdminResponse(saved);
   }
 
   @Transactional
-  public PaymentAdminResponse updateStatus(Long id, PaymentStatusUpdateRequest request) {
+  public PaymentAdminResponse updateStatus(Long id, PaymentStatusUpdateRequest request, UserPrincipal principal, HttpServletRequest servletRequest) {
     Payment payment = findPayment(id);
+    PaymentStatus previousStatus = payment.getStatus();
     setStatusWithPaidAt(payment, request.status());
-    return paymentMapper.toAdminResponse(paymentRepository.save(payment));
+    Payment saved = paymentRepository.save(payment);
+    auditLogService.record(principal, AuditAction.PAYMENT_STATUS_CHANGED, AuditEntityType.PAYMENT, saved.getId(),
+        "Payment status changed to " + saved.getStatus(), Map.of("previousStatus", previousStatus, "status", saved.getStatus()), servletRequest);
+    return paymentMapper.toAdminResponse(saved);
   }
 
   @Transactional
-  public void cancel(Long id) {
+  public void cancel(Long id, UserPrincipal principal, HttpServletRequest servletRequest) {
     Payment payment = findPayment(id);
+    PaymentStatus previousStatus = payment.getStatus();
     setStatusWithPaidAt(payment, PaymentStatus.CANCELLED);
     paymentRepository.save(payment);
+    auditLogService.record(principal, AuditAction.PAYMENT_CANCELLED, AuditEntityType.PAYMENT, payment.getId(),
+        "Payment cancelled: " + payment.getTitleUk(), Map.of("previousStatus", previousStatus, "status", payment.getStatus()), servletRequest);
   }
 
   private void applyRequest(Payment payment, PaymentRequest request) {

@@ -4,6 +4,8 @@ import com.houseapp.dto.request.admin.MaintenanceRequestUpdateRequest;
 import com.houseapp.dto.request.resident.MaintenanceRequestCreateRequest;
 import com.houseapp.dto.response.admin.MaintenanceRequestAdminResponse;
 import com.houseapp.dto.response.resident.MaintenanceRequestResidentResponse;
+import com.houseapp.entity.AuditAction;
+import com.houseapp.entity.AuditEntityType;
 import com.houseapp.entity.MaintenanceCategory;
 import com.houseapp.entity.MaintenancePriority;
 import com.houseapp.entity.MaintenanceRequest;
@@ -14,8 +16,10 @@ import com.houseapp.mapper.MaintenanceRequestMapper;
 import com.houseapp.repository.MaintenanceRequestRepository;
 import com.houseapp.repository.ResidentProfileRepository;
 import com.houseapp.security.UserPrincipal;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,15 +29,18 @@ public class MaintenanceRequestService {
   private final MaintenanceRequestRepository maintenanceRequestRepository;
   private final ResidentProfileRepository residentProfileRepository;
   private final MaintenanceRequestMapper maintenanceRequestMapper;
+  private final AuditLogService auditLogService;
 
   public MaintenanceRequestService(
       MaintenanceRequestRepository maintenanceRequestRepository,
       ResidentProfileRepository residentProfileRepository,
-      MaintenanceRequestMapper maintenanceRequestMapper
+      MaintenanceRequestMapper maintenanceRequestMapper,
+      AuditLogService auditLogService
   ) {
     this.maintenanceRequestRepository = maintenanceRequestRepository;
     this.residentProfileRepository = residentProfileRepository;
     this.maintenanceRequestMapper = maintenanceRequestMapper;
+    this.auditLogService = auditLogService;
   }
 
   @Transactional(readOnly = true)
@@ -45,7 +52,7 @@ public class MaintenanceRequestService {
   }
 
   @Transactional
-  public MaintenanceRequestResidentResponse createForResident(UserPrincipal principal, MaintenanceRequestCreateRequest request) {
+  public MaintenanceRequestResidentResponse createForResident(UserPrincipal principal, MaintenanceRequestCreateRequest request, HttpServletRequest servletRequest) {
     ResidentProfile profile = findProfileByUser(principal.getId());
     MaintenanceRequest maintenanceRequest = new MaintenanceRequest();
     maintenanceRequest.setResidentProfile(profile);
@@ -55,7 +62,10 @@ public class MaintenanceRequestService {
     maintenanceRequest.setCategory(request.category());
     maintenanceRequest.setPriority(MaintenancePriority.NORMAL);
     maintenanceRequest.setStatus(MaintenanceStatus.NEW);
-    return maintenanceRequestMapper.toResidentResponse(maintenanceRequestRepository.save(maintenanceRequest));
+    MaintenanceRequest saved = maintenanceRequestRepository.save(maintenanceRequest);
+    auditLogService.record(principal, AuditAction.MAINTENANCE_CREATED, AuditEntityType.MAINTENANCE_REQUEST, saved.getId(),
+        "Maintenance request created: " + saved.getTitle(), Map.of("category", saved.getCategory(), "residentProfileId", profile.getId()), servletRequest);
+    return maintenanceRequestMapper.toResidentResponse(saved);
   }
 
   @Transactional(readOnly = true)
@@ -84,8 +94,9 @@ public class MaintenanceRequestService {
   }
 
   @Transactional
-  public MaintenanceRequestAdminResponse updateForAdmin(Long id, MaintenanceRequestUpdateRequest request) {
+  public MaintenanceRequestAdminResponse updateForAdmin(Long id, MaintenanceRequestUpdateRequest request, UserPrincipal principal, HttpServletRequest servletRequest) {
     MaintenanceRequest maintenanceRequest = findRequest(id);
+    MaintenanceStatus previousStatus = maintenanceRequest.getStatus();
     if (request.status() != null) {
       maintenanceRequest.setStatus(request.status());
       if (request.status() == MaintenanceStatus.RESOLVED && maintenanceRequest.getResolvedAt() == null) {
@@ -101,7 +112,10 @@ public class MaintenanceRequestService {
     if (request.internalNotes() != null) {
       maintenanceRequest.setInternalNotes(cleanNullable(request.internalNotes()));
     }
-    return maintenanceRequestMapper.toAdminResponse(maintenanceRequestRepository.save(maintenanceRequest));
+    MaintenanceRequest saved = maintenanceRequestRepository.save(maintenanceRequest);
+    auditLogService.record(principal, AuditAction.MAINTENANCE_UPDATED, AuditEntityType.MAINTENANCE_REQUEST, saved.getId(),
+        "Maintenance request updated: " + saved.getTitle(), Map.of("previousStatus", previousStatus, "status", saved.getStatus()), servletRequest);
+    return maintenanceRequestMapper.toAdminResponse(saved);
   }
 
   private MaintenanceRequest findRequest(Long id) {

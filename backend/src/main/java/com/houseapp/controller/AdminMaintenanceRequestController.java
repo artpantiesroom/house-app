@@ -5,9 +5,12 @@ import com.houseapp.dto.response.admin.MaintenanceRequestAdminResponse;
 import com.houseapp.entity.MaintenanceCategory;
 import com.houseapp.entity.MaintenancePriority;
 import com.houseapp.entity.MaintenanceStatus;
+import com.houseapp.security.UserPrincipal;
 import com.houseapp.service.MaintenanceRequestService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,8 +46,10 @@ public class AdminMaintenanceRequestController {
   @PatchMapping("/{id}")
   public MaintenanceRequestAdminResponse update(
       @PathVariable Long id,
-      @Valid @RequestBody MaintenanceRequestUpdateRequest request
+      @Valid @RequestBody MaintenanceRequestUpdateRequest request,
+      @AuthenticationPrincipal UserPrincipal principal,
+      HttpServletRequest servletRequest
   ) {
-    return maintenanceRequestService.updateForAdmin(id, request);
+    return maintenanceRequestService.updateForAdmin(id, request, principal, servletRequest);
   }
 }
