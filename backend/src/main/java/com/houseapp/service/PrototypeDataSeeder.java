@@ -11,6 +11,10 @@ import com.houseapp.entity.MaintenanceCategory;
 import com.houseapp.entity.MaintenancePriority;
 import com.houseapp.entity.MaintenanceRequest;
 import com.houseapp.entity.MaintenanceStatus;
+import com.houseapp.entity.Payment;
+import com.houseapp.entity.PaymentCurrency;
+import com.houseapp.entity.PaymentStatus;
+import com.houseapp.entity.PaymentType;
 import com.houseapp.entity.ResidentProfile;
 import com.houseapp.entity.Role;
 import com.houseapp.entity.User;
@@ -18,10 +22,12 @@ import com.houseapp.repository.AnnouncementRepository;
 import com.houseapp.repository.ApartmentRepository;
 import com.houseapp.repository.BuildingContactRepository;
 import com.houseapp.repository.MaintenanceRequestRepository;
+import com.houseapp.repository.PaymentRepository;
 import com.houseapp.repository.ResidentProfileRepository;
 import com.houseapp.repository.UserRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 import org.springframework.boot.ApplicationArguments;
@@ -38,6 +44,7 @@ public class PrototypeDataSeeder implements ApplicationRunner {
   private final AnnouncementRepository announcementRepository;
   private final BuildingContactRepository buildingContactRepository;
   private final MaintenanceRequestRepository maintenanceRequestRepository;
+  private final PaymentRepository paymentRepository;
   private final PasswordEncoder passwordEncoder;
 
   public PrototypeDataSeeder(
@@ -47,6 +54,7 @@ public class PrototypeDataSeeder implements ApplicationRunner {
       AnnouncementRepository announcementRepository,
       BuildingContactRepository buildingContactRepository,
       MaintenanceRequestRepository maintenanceRequestRepository,
+      PaymentRepository paymentRepository,
       PasswordEncoder passwordEncoder
   ) {
     this.userRepository = userRepository;
@@ -55,6 +63,7 @@ public class PrototypeDataSeeder implements ApplicationRunner {
     this.announcementRepository = announcementRepository;
     this.buildingContactRepository = buildingContactRepository;
     this.maintenanceRequestRepository = maintenanceRequestRepository;
+    this.paymentRepository = paymentRepository;
     this.passwordEncoder = passwordEncoder;
   }
 
@@ -86,6 +95,7 @@ public class PrototypeDataSeeder implements ApplicationRunner {
     seedAnnouncements(admin);
     seedContacts();
     seedMaintenanceRequests();
+    seedPayments(admin);
   }
 
   private User seedUser(String name, String email, String rawPassword, Role role, boolean mustChangePassword) {
@@ -328,5 +338,63 @@ public class PrototypeDataSeeder implements ApplicationRunner {
       request.setResolvedAt(Instant.now().minus(2, ChronoUnit.DAYS));
     }
     maintenanceRequestRepository.save(request);
+  }
+
+  private void seedPayments(User admin) {
+    seedPayment("resident@house.com", PaymentType.UTILITIES, PaymentStatus.PENDING, 125000L, 2026, 6, "Комунальні послуги червень 2026", "Utilities June 2026", "Вода, електрика та загальнобудинкові витрати.", "Water, electricity, and shared building costs.", LocalDate.of(2026, 6, 25), admin);
+    seedPayment("resident@house.com", PaymentType.MAINTENANCE, PaymentStatus.PAID, 65000L, 2026, 6, "Внесок на обслуговування червень 2026", "Maintenance fee June 2026", "Щомісячне обслуговування будинку.", "Monthly building maintenance.", LocalDate.of(2026, 6, 15), admin);
+    seedPayment("resident@house.com", PaymentType.SECURITY, PaymentStatus.OVERDUE, 30000L, 2026, 5, "Охорона травень 2026", "Security fee May 2026", "Послуги охорони території.", "Building security services.", LocalDate.of(2026, 5, 20), admin);
+    seedPayment("olena.resident@house.com", PaymentType.RENT, PaymentStatus.PENDING, 850000L, 2026, 6, "Оренда червень 2026", "Rent June 2026", "Орендна плата за квартиру.", "Apartment rent.", LocalDate.of(2026, 6, 10), admin);
+    seedPayment("olena.resident@house.com", PaymentType.UTILITIES, PaymentStatus.PAID, 118500L, 2026, 5, "Комунальні послуги травень 2026", "Utilities May 2026", "Комунальні послуги за травень.", "Utilities for May.", LocalDate.of(2026, 5, 25), admin);
+    seedPayment("andrii.resident@house.com", PaymentType.PARKING, PaymentStatus.PENDING, 120000L, 2026, 6, "Паркування червень 2026", "Parking June 2026", "Паркомісце у підземному паркінгу.", "Underground parking space.", LocalDate.of(2026, 6, 18), admin);
+    seedPayment("andrii.resident@house.com", PaymentType.MAINTENANCE, PaymentStatus.OVERDUE, 65000L, 2026, 5, "Внесок на обслуговування травень 2026", "Maintenance fee May 2026", "Щомісячне обслуговування будинку.", "Monthly building maintenance.", LocalDate.of(2026, 5, 15), admin);
+    seedPayment("iryna.resident@house.com", PaymentType.SECURITY, PaymentStatus.PAID, 30000L, 2026, 6, "Охорона червень 2026", "Security fee June 2026", "Послуги охорони території.", "Building security services.", LocalDate.of(2026, 6, 20), admin);
+    seedPayment("iryna.resident@house.com", PaymentType.UTILITIES, PaymentStatus.PENDING, 142000L, 2026, 6, "Комунальні послуги червень 2026", "Utilities June 2026", "Комунальні послуги за червень.", "Utilities for June.", LocalDate.of(2026, 6, 25), admin);
+    seedPayment("taras.resident@house.com", PaymentType.OTHER, PaymentStatus.CANCELLED, 45000L, 2026, 4, "Разовий адміністративний платіж", "One-time administrative fee", "Скасований тестовий запис.", "Cancelled test record.", LocalDate.of(2026, 4, 30), admin);
+    seedPayment("taras.resident@house.com", PaymentType.RENT, PaymentStatus.PAID, 780000L, 2026, 5, "Оренда травень 2026", "Rent May 2026", "Орендна плата за квартиру.", "Apartment rent.", LocalDate.of(2026, 5, 10), admin);
+    seedPayment("taras.resident@house.com", PaymentType.MAINTENANCE, PaymentStatus.PENDING, 65000L, 2026, 7, "Внесок на обслуговування липень 2026", "Maintenance fee July 2026", "Щомісячне обслуговування будинку.", "Monthly building maintenance.", LocalDate.of(2026, 7, 15), admin);
+  }
+
+  private void seedPayment(
+      String residentEmail,
+      PaymentType type,
+      PaymentStatus status,
+      Long amountMinor,
+      Integer periodYear,
+      Integer periodMonth,
+      String titleUk,
+      String titleEn,
+      String descriptionUk,
+      String descriptionEn,
+      LocalDate dueDate,
+      User admin
+  ) {
+    User user = userRepository.findByEmail(residentEmail).orElse(null);
+    if (user == null) {
+      return;
+    }
+    ResidentProfile profile = residentProfileRepository.findByUserId(user.getId()).orElse(null);
+    if (profile == null || paymentRepository.existsByResidentProfileIdAndTypeAndPeriodYearAndPeriodMonthAndTitleUkIgnoreCase(profile.getId(), type, periodYear, periodMonth, titleUk)) {
+      return;
+    }
+    Payment payment = new Payment();
+    payment.setResidentProfile(profile);
+    payment.setApartment(profile.getApartment());
+    payment.setType(type);
+    payment.setStatus(status);
+    payment.setAmountMinor(amountMinor);
+    payment.setCurrency(PaymentCurrency.UAH);
+    payment.setPeriodYear(periodYear);
+    payment.setPeriodMonth(periodMonth);
+    payment.setTitleUk(titleUk);
+    payment.setTitleEn(titleEn);
+    payment.setDescriptionUk(descriptionUk);
+    payment.setDescriptionEn(descriptionEn);
+    payment.setDueDate(dueDate);
+    payment.setCreatedBy(admin);
+    if (status == PaymentStatus.PAID) {
+      payment.setPaidAt(Instant.now().minus(1, ChronoUnit.DAYS));
+    }
+    paymentRepository.save(payment);
   }
 }

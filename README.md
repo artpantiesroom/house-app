@@ -44,7 +44,15 @@ Stage 4 maintenance requests are implemented:
 - server-side resident ownership checks
 - frontend integration for resident and administrator maintenance pages
 
-Payments, audit log full migration, incidents, avatar upload, full localization, and PWA behavior remain for later stages.
+Stage 5 payments are implemented:
+
+- SQLite/Flyway table for prototype payment/accounting records
+- resident read-only payment visibility with ownership checks
+- administrator payment creation, editing, status changes, cancellation, and filters
+- money stored as integer minor units, for example `125000 = 1250.00 UAH`
+- frontend integration for resident and administrator payment pages
+
+Audit log full migration, incidents, avatar upload, full localization, and PWA behavior remain for later stages.
 
 ## Requirements
 
@@ -140,6 +148,8 @@ Stage 3 seed data includes five announcements: three published records visible t
 Stage 3 seed data also includes five building contacts: management company, plumber, electrician, security, and emergency service. The seeder is idempotent and does not create duplicates on restart.
 
 Stage 4 seed data includes eight maintenance requests across the demo residents, including `NEW`, `IN_PROGRESS`, `WAITING_RESIDENT`, `RESOLVED`, and `CANCELLED` statuses, plus urgent and common category examples.
+
+Stage 5 seed data includes twelve payment records across demo residents and apartments, with `PENDING`, `PAID`, `OVERDUE`, and `CANCELLED` statuses, several months, and multiple payment types.
 
 ## Authentication Architecture
 
@@ -249,6 +259,28 @@ GET  /api/resident/maintenance-requests/{id}
 
 Residents can create and read only their own requests. Apartment and resident ownership are derived from the authenticated account, not from request body fields.
 
+Administrator payments:
+
+```text
+GET    /api/admin/payments
+POST   /api/admin/payments
+GET    /api/admin/payments/{id}
+PUT    /api/admin/payments/{id}
+PATCH  /api/admin/payments/{id}/status
+DELETE /api/admin/payments/{id}
+```
+
+The admin list supports `status`, `type`, `residentId`, `apartmentId`, `periodYear`, `periodMonth`, and `search` filters. `DELETE` marks a payment as `CANCELLED`; it does not hard delete records.
+
+Resident payments:
+
+```text
+GET /api/resident/payments
+GET /api/resident/payments/{id}
+```
+
+Residents can read only their own payment records. Payment records are prototype accounting records only; no real payment processing is integrated.
+
 Role-check endpoints used by Stage 1 tests:
 
 ```text
@@ -318,6 +350,6 @@ npm run build
 - This is not production-certified.
 - No real payment provider is integrated.
 - Avatar upload is not implemented yet; Stage 2 stores only `avatarPath`.
-- Payments, audit log, and incidents still use mock/local frontend behavior.
-- Full Ukrainian/English localization is not complete; Stage 4 adds only maintenance request UI labels.
+- Audit log and incidents still use mock/local frontend behavior.
+- Full Ukrainian/English localization is not complete; Stage 5 adds only payment UI labels.
 - PWA behavior is not implemented yet.
