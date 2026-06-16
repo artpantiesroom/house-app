@@ -18,6 +18,7 @@ public record AdminResidentResponse(
     String emergencyContactName,
     String emergencyContactPhone,
     String avatarPath,
+    String avatarUrl,
     String notes,
     Instant createdAt,
     Instant updatedAt

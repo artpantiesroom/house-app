@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { UserCircle } from 'lucide-react';
+import AvatarPreview from '../../components/AvatarPreview.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
@@ -23,6 +23,7 @@ export default function Profile() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [errors, setErrors] = useState({});
+  const [avatarBusy, setAvatarBusy] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -88,6 +89,46 @@ export default function Profile() {
     setErrors((current) => ({ ...current, [field]: '' }));
   };
 
+  const uploadAvatar = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || avatarBusy) return;
+    const validationError = validateAvatarFile(file, t);
+    if (validationError) {
+      setError(validationError);
+      setSuccess('');
+      return;
+    }
+    setAvatarBusy(true);
+    setError('');
+    setSuccess('');
+    try {
+      const updated = await residentsApi.uploadOwnAvatar(file);
+      setProfile(updated);
+      setSuccess(t('avatarUploaded'));
+    } catch (uploadError) {
+      setError(uploadError.message || t('avatarUploadFailed'));
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
+
+  const removeAvatar = async () => {
+    if (avatarBusy) return;
+    setAvatarBusy(true);
+    setError('');
+    setSuccess('');
+    try {
+      const updated = await residentsApi.deleteOwnAvatar();
+      setProfile(updated);
+      setSuccess(t('avatarRemoved'));
+    } catch (removeError) {
+      setError(removeError.message || t('avatarRemoveFailed'));
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
+
   if (loading) return <SkeletonCard rows={5} />;
 
   return (
@@ -102,9 +143,7 @@ export default function Profile() {
         <div className="grid gap-4 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
           <article className="glass rounded-2xl p-5">
             <div className="flex items-start gap-4">
-              <div className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl border border-sky-100/15 bg-sky-400/10">
-                {profile.avatarPath ? <img src={profile.avatarPath} alt="" className="h-full w-full rounded-2xl object-cover" /> : <UserCircle size={48} className="text-sky-100/70" />}
-              </div>
+              <AvatarPreview avatarUrl={profile.avatarUrl} name={profile.name} />
               <div className="min-w-0">
                 <p className="break-words text-xl font-semibold">{profile.name}</p>
                 <p className="break-words text-sm text-sky-100/70">{profile.email}</p>
@@ -117,9 +156,17 @@ export default function Profile() {
               <Info label={t('emergencyContactPerson')} value={profile.emergencyContactName || t('notProvided')} confidential />
               <Info label={t('emergencyContactPhone')} value={profile.emergencyContactPhone || t('notProvided')} confidential />
             </div>
-            <p className="mt-5 rounded-xl border border-sky-100/15 bg-sky-400/10 p-3 text-xs text-sky-100/70">
-              {t('avatarLater')}
-            </p>
+            <div className="mt-5 rounded-xl border border-sky-100/15 bg-sky-400/10 p-3 text-xs text-sky-100/70">
+              <p className="font-semibold text-sky-50">{t('avatar')}</p>
+              <p className="mt-1">{t('avatarRules')}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <label className="focus-ring cursor-pointer rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-white">
+                  {avatarBusy ? t('saving') : profile.avatarUrl ? t('replaceAvatar') : t('uploadAvatar')}
+                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadAvatar} className="sr-only" />
+                </label>
+                {profile.avatarUrl && <button type="button" disabled={avatarBusy} onClick={removeAvatar} className="focus-ring rounded-xl border border-rose-300/40 px-3 py-2 text-sm text-rose-100 disabled:opacity-60">{t('removeAvatar')}</button>}
+              </div>
+            </div>
           </article>
           <form onSubmit={save} className="glass grid content-start gap-3 rounded-2xl p-5 md:grid-cols-2">
             <Field label={t('yourPhoneNumber')} error={errors.phone}><input value={form.phone} onChange={(e) => updateField('phone', e.target.value)} placeholder={UKRAINIAN_PHONE_PLACEHOLDER} inputMode="tel" className={inputClass(errors.phone)} /></Field>
@@ -132,6 +179,13 @@ export default function Profile() {
       )}
     </section>
   );
+}
+
+function validateAvatarFile(file, t) {
+  const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+  if (file.size > 2 * 1024 * 1024) return t('avatarFileTooLarge');
+  if (!allowed.includes(file.type)) return t('avatarUnsupportedType');
+  return '';
 }
 
 function Info({ label, value, confidential = false }) {

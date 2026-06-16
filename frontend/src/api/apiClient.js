@@ -21,12 +21,13 @@ export async function apiRequest(path, options = {}) {
 }
 
 async function request(path, options, didRetry) {
-  const { body, auth = true, skipRefresh = false, headers = {}, ...fetchOptions } = options;
+  const { body, auth = true, skipRefresh = false, headers = {}, responseType = 'json', ...fetchOptions } = options;
+  const isFormData = body instanceof FormData;
   const requestHeaders = {
     ...headers,
   };
 
-  if (body !== undefined) {
+  if (body !== undefined && !isFormData) {
     requestHeaders['Content-Type'] = 'application/json';
   }
   if (auth && accessToken) {
@@ -36,7 +37,7 @@ async function request(path, options, didRetry) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...fetchOptions,
     headers: requestHeaders,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
   });
 
   if (response.status === 401 && auth && !skipRefresh && !didRetry && refreshTokens) {
@@ -55,6 +56,10 @@ async function request(path, options, didRetry) {
 
   if (response.status === 204) {
     return null;
+  }
+
+  if (responseType === 'blob') {
+    return response.blob();
   }
 
   return response.json();

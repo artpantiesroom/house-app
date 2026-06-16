@@ -60,7 +60,15 @@ Stage 6 audit log and security incidents are implemented:
 - audit events for authentication, residents, maintenance, payments, and security incident operations
 - frontend integration for administrator audit log and incidents pages
 
-Avatar upload, full localization, and PWA behavior remain for later stages.
+Stage 7A avatar upload and profile cleanup are implemented:
+
+- resident avatar upload, replacement, and removal from `/resident/profile`
+- administrator avatar upload, replacement, and removal for existing resident profiles
+- local avatar storage under `backend/uploads/avatars/`
+- authenticated avatar file serving through `/api/files/avatars/{filename}`
+- file validation for JPG, PNG, and WebP up to 2 MB
+
+Full localization cleanup and PWA behavior remain for later stages.
 
 ## Requirements
 
@@ -118,6 +126,14 @@ SQLite database location:
 ```text
 backend/data/house-app.db
 ```
+
+Avatar upload location:
+
+```text
+backend/uploads/avatars/
+```
+
+Only generated filenames are stored in SQLite. API responses may include `avatarUrl`; they do not expose absolute filesystem paths.
 
 ## Frontend Configuration
 
@@ -206,18 +222,26 @@ POST   /api/admin/residents
 GET    /api/admin/residents/{id}
 PUT    /api/admin/residents/{id}
 DELETE /api/admin/residents/{id}
+POST   /api/admin/residents/{id}/avatar
+DELETE /api/admin/residents/{id}/avatar
 ```
 
 `DELETE /api/admin/residents/{id}` performs a soft deactivate of the linked user instead of physically deleting the account.
+
+`{id}` in the administrator avatar endpoints is the resident profile id used by the admin residents API. Avatar upload expects multipart field `file`.
 
 Resident profile:
 
 ```text
 GET /api/resident/profile
 PUT /api/resident/profile
+POST /api/resident/profile/avatar
+DELETE /api/resident/profile/avatar
 ```
 
 Residents may update only safe profile fields: phone, emergency contact fields, and preferred language. Apartment assignment, notes, role, email, enabled status, and password-change state remain administrator/server controlled.
+
+Resident avatar upload expects multipart field `file`. Allowed formats are `image/jpeg`, `image/png`, and `image/webp`; maximum size is 2 MB. The backend validates MIME type, extension, and basic file signature bytes.
 
 Administrator announcements and contacts:
 
@@ -313,6 +337,14 @@ DELETE /api/admin/security-incidents/{id}
 
 The incident list supports `severity`, `status`, `category`, `assignedToUserId`, `dateFrom`, `dateTo`, and `search` filters. `DELETE` is a soft close that marks the incident as `FALSE_POSITIVE` and sets `resolvedAt`; it does not hard delete the record.
 
+Avatar files:
+
+```text
+GET /api/files/avatars/{filename}
+```
+
+Avatar file serving is authenticated. The frontend fetches avatar files with the access token and renders a temporary browser object URL. Filenames are generated UUID-based names and path traversal attempts are rejected.
+
 Role-check endpoints used by Stage 1 tests:
 
 ```text
@@ -381,7 +413,8 @@ npm run build
 
 - This is not production-certified.
 - No real payment provider is integrated.
-- Avatar upload is not implemented yet; Stage 2 stores only `avatarPath`.
+- Avatar upload does not resize, crop, optimize, or scan images.
+- Avatar files use local filesystem storage only; no cloud/object storage is integrated.
 - No production SIEM, monitoring pipeline, or incident automation is integrated.
-- Full Ukrainian/English localization is not complete; Stage 6 adds only audit and incident UI labels on top of earlier stage labels.
+- Full Ukrainian/English localization is not complete; Stage 7A adds only avatar UI labels on top of earlier stage labels.
 - PWA behavior is not implemented yet.

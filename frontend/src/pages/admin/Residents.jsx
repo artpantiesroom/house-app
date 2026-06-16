@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import AvatarPreview from '../../components/AvatarPreview.jsx';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import PasswordField from '../../components/PasswordField.jsx';
@@ -40,6 +41,7 @@ export default function Residents() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState('');
+  const [avatarBusyId, setAvatarBusyId] = useState('');
   const [temporaryPasswordVisible, setTemporaryPasswordVisible] = useState(false);
 
   const availableApartments = useMemo(() => {
@@ -137,6 +139,46 @@ export default function Residents() {
     }
   };
 
+  const uploadAvatar = async (resident, event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || avatarBusyId) return;
+    const validationError = validateAvatarFile(file, t);
+    if (validationError) {
+      setError(validationError);
+      setSuccess('');
+      return;
+    }
+    setAvatarBusyId(resident.id);
+    setError('');
+    setSuccess('');
+    try {
+      const updated = await residentsApi.uploadAvatar(resident.id, file);
+      setResidents((current) => current.map((item) => item.id === resident.id ? updated : item));
+      setSuccess(t('avatarUploaded'));
+    } catch (uploadError) {
+      setError(uploadError.message || t('avatarUploadFailed'));
+    } finally {
+      setAvatarBusyId('');
+    }
+  };
+
+  const removeAvatar = async (resident) => {
+    if (avatarBusyId) return;
+    setAvatarBusyId(resident.id);
+    setError('');
+    setSuccess('');
+    try {
+      const updated = await residentsApi.deleteAvatar(resident.id);
+      setResidents((current) => current.map((item) => item.id === resident.id ? updated : item));
+      setSuccess(t('avatarRemoved'));
+    } catch (removeError) {
+      setError(removeError.message || t('avatarRemoveFailed'));
+    } finally {
+      setAvatarBusyId('');
+    }
+  };
+
   const edit = (resident) => {
     setEditingId(resident.id);
     setForm({
@@ -195,6 +237,10 @@ export default function Residents() {
           </div>
         )}
         <Field label={t('adminNotes')} error={errors.notes} wide><textarea value={form.notes} onChange={(e) => updateField('notes', e.target.value)} rows={3} className={inputClass(errors.notes)} /></Field>
+        <div className="rounded-xl border border-sky-100/15 bg-sky-400/10 p-3 text-xs text-sky-100/70 md:col-span-2 xl:col-span-4">
+          <span className="font-semibold text-sky-50">{t('avatar')}: </span>
+          {editingId ? t('avatarManageExistingResident') : t('avatarAvailableAfterCreate')}
+        </div>
         <div className="flex flex-wrap gap-2 md:col-span-2 xl:col-span-4">
           <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60">{saving ? <LoadingSpinner label={t('saving')} /> : editingId ? t('saveResident') : t('addResident')}</button>
           {editingId && <button type="button" onClick={() => { setEditingId(''); setForm(emptyForm); setErrors({}); }} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-3 text-sm">{t('cancel')}</button>}
@@ -207,16 +253,24 @@ export default function Residents() {
           {residents.map((resident) => (
             <article key={resident.id} className="glass rounded-2xl p-4">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div className="min-w-0">
-                  <p className="text-lg font-semibold">{resident.name} <DataClassificationBadge level="Internal" /></p>
-                  <p className="break-words text-sm text-sky-100/70">{resident.email} · {resident.phone || t('notProvided')}</p>
-                  <p className="text-sm text-sky-100/70">{resident.apartmentNumber ? `${t('sectionLabel')} ${resident.buildingSection}, ${t('apartmentShort')} ${resident.apartmentNumber}, ${t('floorLabel')} ${resident.floor}` : t('apartmentNotAssigned')} <DataClassificationBadge level="Confidential" /></p>
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                    <span className={`rounded-full px-3 py-1 ${resident.enabled ? 'bg-emerald-400/15 text-emerald-100' : 'bg-rose-400/15 text-rose-100'}`}>{resident.enabled ? t('active') : t('disabled')}</span>
-                    <span className={`rounded-full px-3 py-1 ${resident.mustChangePassword ? 'bg-amber-400/15 text-amber-100' : 'bg-sky-400/15 text-sky-100'}`}>{resident.mustChangePassword ? t('mustChangePassword') : t('passwordUpdated')}</span>
+                <div className="flex min-w-0 gap-4">
+                  <AvatarPreview avatarUrl={resident.avatarUrl} name={resident.name} sizeClass="h-16 w-16" />
+                  <div className="min-w-0">
+                    <p className="text-lg font-semibold">{resident.name} <DataClassificationBadge level="Internal" /></p>
+                    <p className="break-words text-sm text-sky-100/70">{resident.email} · {resident.phone || t('notProvided')}</p>
+                    <p className="text-sm text-sky-100/70">{resident.apartmentNumber ? `${t('sectionLabel')} ${resident.buildingSection}, ${t('apartmentShort')} ${resident.apartmentNumber}, ${t('floorLabel')} ${resident.floor}` : t('apartmentNotAssigned')} <DataClassificationBadge level="Confidential" /></p>
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                      <span className={`rounded-full px-3 py-1 ${resident.enabled ? 'bg-emerald-400/15 text-emerald-100' : 'bg-rose-400/15 text-rose-100'}`}>{resident.enabled ? t('active') : t('disabled')}</span>
+                      <span className={`rounded-full px-3 py-1 ${resident.mustChangePassword ? 'bg-amber-400/15 text-amber-100' : 'bg-sky-400/15 text-sky-100'}`}>{resident.mustChangePassword ? t('mustChangePassword') : t('passwordUpdated')}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-2">
+                  <label className="focus-ring cursor-pointer rounded-xl border border-sky-100/20 px-3 py-2 text-sm">
+                    {avatarBusyId === resident.id ? t('saving') : resident.avatarUrl ? t('replaceAvatar') : t('uploadAvatar')}
+                    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => uploadAvatar(resident, event)} className="sr-only" />
+                  </label>
+                  {resident.avatarUrl && <button disabled={avatarBusyId === resident.id} onClick={() => removeAvatar(resident)} className="focus-ring rounded-xl border border-rose-300/40 px-3 py-2 text-sm text-rose-100 disabled:opacity-50">{t('removeAvatar')}</button>}
                   <button onClick={() => edit(resident)} className="focus-ring rounded-xl border border-sky-100/20 px-3 py-2 text-sm">{t('edit')}</button>
                   <button disabled={deletingId === resident.id || !resident.enabled} onClick={() => deactivate(resident)} className="focus-ring rounded-xl border border-rose-300/40 px-3 py-2 text-sm text-rose-100 disabled:opacity-50">{deletingId === resident.id ? t('deactivating') : t('deactivate')}</button>
                 </div>
@@ -250,4 +304,11 @@ function formatApartmentOption(apartment, t) {
     MAINTENANCE: 'apartmentStatusMaintenance',
   }[apartment.status] || 'apartmentStatusVacant';
   return `${apartment.apartmentNumber} · ${t('sectionLabel')} ${apartment.buildingSection} · ${t('floorLabel')} ${apartment.floor} · ${t(statusKey)}`;
+}
+
+function validateAvatarFile(file, t) {
+  const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+  if (file.size > 2 * 1024 * 1024) return t('avatarFileTooLarge');
+  if (!allowed.includes(file.type)) return t('avatarUnsupportedType');
+  return '';
 }

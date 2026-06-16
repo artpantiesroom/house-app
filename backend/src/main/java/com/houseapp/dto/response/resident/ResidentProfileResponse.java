@@ -17,6 +17,7 @@ public record ResidentProfileResponse(
     String emergencyContactName,
     String emergencyContactPhone,
     String avatarPath,
+    String avatarUrl,
     Instant createdAt,
     Instant updatedAt
 ) {}

@@ -12,6 +12,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -45,6 +46,11 @@ public class ApiExceptionHandler {
   @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
   public ResponseEntity<ErrorResponse> methodNotSupported(HttpRequestMethodNotSupportedException exception, HttpServletRequest request) {
     return build(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED", "HTTP method is not supported for this endpoint", request, Map.of());
+  }
+
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  public ResponseEntity<ErrorResponse> maxUploadSize(MaxUploadSizeExceededException exception, HttpServletRequest request) {
+    return build(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE", "Avatar file is too large", request, Map.of());
   }
 
   @ExceptionHandler({BadCredentialsException.class})

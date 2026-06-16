@@ -30,6 +30,8 @@ public class AppStartupConfig implements ApplicationRunner {
     if (parent != null) {
       Files.createDirectories(parent);
     }
-    Files.createDirectories(Path.of(uploadDir).toAbsolutePath());
+    Path uploads = Path.of(uploadDir).toAbsolutePath();
+    Files.createDirectories(uploads);
+    Files.createDirectories(uploads.resolve("avatars"));
   }
 }

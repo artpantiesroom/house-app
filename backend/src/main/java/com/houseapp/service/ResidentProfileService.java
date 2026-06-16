@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ResidentProfileService {
@@ -36,6 +37,7 @@ public class ResidentProfileService {
   private final PasswordPolicyService passwordPolicyService;
   private final ResidentProfileMapper residentProfileMapper;
   private final AuditLogService auditLogService;
+  private final AvatarStorageService avatarStorageService;
 
   public ResidentProfileService(
       ResidentProfileRepository residentProfileRepository,
@@ -44,7 +46,8 @@ public class ResidentProfileService {
       PasswordEncoder passwordEncoder,
       PasswordPolicyService passwordPolicyService,
       ResidentProfileMapper residentProfileMapper,
-      AuditLogService auditLogService
+      AuditLogService auditLogService,
+      AvatarStorageService avatarStorageService
   ) {
     this.residentProfileRepository = residentProfileRepository;
     this.apartmentRepository = apartmentRepository;
@@ -53,6 +56,7 @@ public class ResidentProfileService {
     this.passwordPolicyService = passwordPolicyService;
     this.residentProfileMapper = residentProfileMapper;
     this.auditLogService = auditLogService;
+    this.avatarStorageService = avatarStorageService;
   }
 
   @Transactional(readOnly = true)
@@ -155,6 +159,56 @@ public class ResidentProfileService {
     profile.setEmergencyContactPhone(cleanNullable(request.emergencyContactPhone()));
     profile.getUser().setPreferredLanguage(normalizeLanguage(request.preferredLanguage()));
     return residentProfileMapper.toResidentResponse(residentProfileRepository.save(profile));
+  }
+
+  @Transactional
+  public ResidentProfileResponse uploadOwnAvatar(UserPrincipal principal, MultipartFile file, HttpServletRequest servletRequest) {
+    ResidentProfile profile = findByUser(principal.getId());
+    String oldAvatar = profile.getAvatarPath();
+    String filename = avatarStorageService.save(file);
+    profile.setAvatarPath(filename);
+    ResidentProfile saved = residentProfileRepository.save(profile);
+    avatarStorageService.delete(oldAvatar);
+    auditLogService.record(principal, AuditAction.AVATAR_UPLOADED, AuditEntityType.RESIDENT, saved.getId(),
+        "Resident avatar uploaded", Map.of("residentProfileId", saved.getId(), "filename", filename), servletRequest);
+    return residentProfileMapper.toResidentResponse(saved);
+  }
+
+  @Transactional
+  public ResidentProfileResponse deleteOwnAvatar(UserPrincipal principal, HttpServletRequest servletRequest) {
+    ResidentProfile profile = findByUser(principal.getId());
+    String oldAvatar = profile.getAvatarPath();
+    profile.setAvatarPath(null);
+    ResidentProfile saved = residentProfileRepository.save(profile);
+    avatarStorageService.delete(oldAvatar);
+    auditLogService.record(principal, AuditAction.AVATAR_DELETED, AuditEntityType.RESIDENT, saved.getId(),
+        "Resident avatar deleted", Map.of("residentProfileId", saved.getId()), servletRequest);
+    return residentProfileMapper.toResidentResponse(saved);
+  }
+
+  @Transactional
+  public AdminResidentResponse uploadAvatarForAdmin(Long id, MultipartFile file, UserPrincipal principal, HttpServletRequest servletRequest) {
+    ResidentProfile profile = findProfile(id);
+    String oldAvatar = profile.getAvatarPath();
+    String filename = avatarStorageService.save(file);
+    profile.setAvatarPath(filename);
+    ResidentProfile saved = residentProfileRepository.save(profile);
+    avatarStorageService.delete(oldAvatar);
+    auditLogService.record(principal, AuditAction.AVATAR_UPLOADED, AuditEntityType.RESIDENT, saved.getId(),
+        "Admin uploaded resident avatar: " + saved.getUser().getEmail(), Map.of("residentProfileId", saved.getId(), "residentUserId", saved.getUser().getId(), "filename", filename), servletRequest);
+    return residentProfileMapper.toAdminResponse(saved);
+  }
+
+  @Transactional
+  public AdminResidentResponse deleteAvatarForAdmin(Long id, UserPrincipal principal, HttpServletRequest servletRequest) {
+    ResidentProfile profile = findProfile(id);
+    String oldAvatar = profile.getAvatarPath();
+    profile.setAvatarPath(null);
+    ResidentProfile saved = residentProfileRepository.save(profile);
+    avatarStorageService.delete(oldAvatar);
+    auditLogService.record(principal, AuditAction.AVATAR_DELETED, AuditEntityType.RESIDENT, saved.getId(),
+        "Admin deleted resident avatar: " + saved.getUser().getEmail(), Map.of("residentProfileId", saved.getId(), "residentUserId", saved.getUser().getId()), servletRequest);
+    return residentProfileMapper.toAdminResponse(saved);
   }
 
   private ResidentProfile findProfile(Long id) {

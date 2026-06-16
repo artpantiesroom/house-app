@@ -9,6 +9,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ResidentProfileMapper {
+  private final com.houseapp.service.AvatarStorageService avatarStorageService;
+
+  public ResidentProfileMapper(com.houseapp.service.AvatarStorageService avatarStorageService) {
+    this.avatarStorageService = avatarStorageService;
+  }
+
   public AdminResidentResponse toAdminResponse(ResidentProfile profile) {
     User user = profile.getUser();
     Apartment apartment = profile.getApartment();
@@ -28,6 +34,7 @@ public class ResidentProfileMapper {
         profile.getEmergencyContactName(),
         profile.getEmergencyContactPhone(),
         profile.getAvatarPath(),
+        avatarStorageService.avatarUrl(profile.getAvatarPath()),
         profile.getNotes(),
         profile.getCreatedAt(),
         profile.getUpdatedAt()
@@ -52,6 +59,7 @@ public class ResidentProfileMapper {
         profile.getEmergencyContactName(),
         profile.getEmergencyContactPhone(),
         profile.getAvatarPath(),
+        avatarStorageService.avatarUrl(profile.getAvatarPath()),
         profile.getCreatedAt(),
         profile.getUpdatedAt()
     );
