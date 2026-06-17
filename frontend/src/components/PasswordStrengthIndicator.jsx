@@ -1,3 +1,5 @@
+import { useLanguage } from '../context/LanguageContext.jsx';
+
 export function getPasswordStrength(password) {
   let score = 0;
   if (password.length >= 8) score += 1;
@@ -9,8 +11,9 @@ export function getPasswordStrength(password) {
 }
 
 export default function PasswordStrengthIndicator({ password }) {
+  const { t } = useLanguage();
   const score = getPasswordStrength(password);
-  const label = score >= 5 ? 'сильний' : score >= 3 ? 'середній' : 'слабкий';
+  const label = score >= 5 ? t('passwordStrengthStrong') : score >= 3 ? t('passwordStrengthMedium') : t('passwordStrengthWeak');
   const color = score >= 5 ? 'bg-emerald-300' : score >= 3 ? 'bg-amber-300' : 'bg-rose-300';
 
   return (
@@ -18,7 +21,7 @@ export default function PasswordStrengthIndicator({ password }) {
       <div className="h-2 overflow-hidden rounded-full bg-sky-950/70">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.max(score, 1) * 20}%` }} />
       </div>
-      <p className="text-xs text-sky-100/70">Надійність пароля: {label}</p>
+      <p className="text-xs text-sky-100/70">{t('passwordStrength')}: {label}</p>
     </div>
   );
 }

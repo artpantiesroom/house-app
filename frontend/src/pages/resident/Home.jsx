@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { announcementsApi } from '../../api/announcementsApi.js';
-import { buildingInfo } from '../../data/mockData.js';
+import { buildingInfo } from '../../config/buildingInfo.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
+import { formatDateTime } from '../../utils/date.js';
 
 const labels = {
   uk: {
@@ -74,7 +75,7 @@ export default function Home() {
       <div className="glass rounded-2xl p-5">
         <h2 className="text-xl font-semibold">{l.buildingInfo}</h2>
         <p className="mt-2 text-sky-100/70">{l.floors}: {buildingInfo.floors} · {l.quietHours} {buildingInfo.quietHours}</p>
-        <p className="mt-3 text-sm text-sky-100/65">{buildingInfo.policyNote}</p>
+        <p className="mt-3 text-sm text-sky-100/65">{buildingInfo.policyNote[language]}</p>
       </div>
       <div className="grid gap-3">
         <h2 className="text-xl font-semibold">{l.announcements} <DataClassificationBadge level="Public" /></h2>
@@ -88,7 +89,7 @@ export default function Home() {
               <Pill>{categoryLabels[announcement.category]?.[language] || announcement.category}</Pill>
               <Pill>{priorityLabels[announcement.priority]?.[language] || announcement.priority}</Pill>
             </div>
-            <p className="mt-3 text-xs text-sky-100/55">{l.publishedAt}: {formatDate(announcement.publishedAt)}</p>
+            <p className="mt-3 text-xs text-sky-100/55">{l.publishedAt}: {formatDateTime(announcement.publishedAt, language)}</p>
           </article>
         ))}
       </div>
@@ -105,9 +106,4 @@ function localized(item, field, language) {
 
 function Pill({ children }) {
   return <span className="rounded-full border border-sky-100/15 bg-sky-950/40 px-2 py-1">{children}</span>;
-}
-
-function formatDate(value) {
-  if (!value) return '—';
-  return new Date(value).toLocaleString();
 }

@@ -3,6 +3,7 @@ import DataClassificationBadge from '../../components/DataClassificationBadge.js
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { paymentsApi } from '../../api/paymentsApi.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
+import { formatDate } from '../../utils/date.js';
 import { formatMoney } from '../../utils/money.js';
 
 export const paymentTypes = [
@@ -84,7 +85,7 @@ export default function MyPayments() {
                 </div>
               </div>
             </div>
-            <p className="mt-3 text-xs text-sky-100/55">{t('dueDate')}: {formatDate(payment.dueDate)}{payment.paidAt ? ` · ${t('paidAt')}: ${formatDate(payment.paidAt)}` : ''}</p>
+            <p className="mt-3 text-xs text-sky-100/55">{t('dueDate')}: {formatDate(payment.dueDate, language)}{payment.paidAt ? ` · ${t('paidAt')}: ${formatDate(payment.paidAt, language)}` : ''}</p>
           </article>
         )) : <div className="glass rounded-2xl p-5 text-sky-100/70">{t('noPayments')}</div>}
       </div>
@@ -109,9 +110,4 @@ function localized(item, field, language) {
     return item[`${field}En`] || item[`${field}Uk`] || '';
   }
   return item[`${field}Uk`] || '';
-}
-
-function formatDate(value) {
-  if (!value) return '—';
-  return new Date(value).toLocaleDateString();
 }

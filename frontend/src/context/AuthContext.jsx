@@ -1,7 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { authApi } from '../api/authApi.js';
 import { setAccessToken, setRefreshFailureHandler, setRefreshTokensHandler } from '../api/apiClient.js';
-import { useAudit } from './AuditContext.jsx';
 
 const AuthContext = createContext(null);
 const REFRESH_TOKEN_KEY = 'house_refresh_token';
@@ -37,7 +36,6 @@ const logAuthDevelopment = (message, details = {}) => {
 };
 
 export function AuthProvider({ children }) {
-  const { appendAuditLog } = useAudit();
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
@@ -138,8 +136,8 @@ export function AuthProvider({ children }) {
         // Local logout must still complete when the server session is already gone.
       }
     }
-    appendAuditLog({ actor, action: 'LOGOUT', target: reason, result: 'SUCCESS' });
-  }, [appendAuditLog, clearSession, user]);
+    logAuthDevelopment('local logout completed', { reason, actor });
+  }, [clearSession, user]);
 
   const resetActivityTimers = useCallback(() => {
     if (!user) return;
@@ -171,20 +169,17 @@ export function AuthProvider({ children }) {
     try {
       const response = await authApi.login({ email, password, rememberMe: remember });
       const nextUser = applyAuthResponse(response);
-      appendAuditLog({ actor: nextUser.email, action: 'LOGIN', target: 'Auth', result: 'SUCCESS' });
       return nextUser;
     } catch (error) {
-      appendAuditLog({ actor: email || 'unknown@house.com', action: 'LOGIN', target: 'Auth', result: 'FAILED' });
       throw new Error(error.message || 'Неправильний email або пароль.');
     }
-  }, [appendAuditLog, applyAuthResponse]);
+  }, [applyAuthResponse]);
 
   const changePassword = useCallback(async ({ currentPassword, newPassword }) => {
     const response = await authApi.changePassword({ currentPassword, newPassword });
     const nextUser = applyAuthResponse(response);
-    appendAuditLog({ actor: nextUser.email, action: 'PASSWORD_CHANGED', target: 'Auth', result: 'SUCCESS' });
     return nextUser;
-  }, [appendAuditLog, applyAuthResponse]);
+  }, [applyAuthResponse]);
 
   const value = useMemo(() => ({
     user,

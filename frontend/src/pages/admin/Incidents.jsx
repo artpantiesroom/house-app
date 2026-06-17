@@ -3,6 +3,7 @@ import { incidentsApi } from '../../api/incidentsApi.js';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
+import { formatDateTime } from '../../utils/date.js';
 
 const severities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 const statuses = ['OPEN', 'INVESTIGATING', 'RESOLVED', 'FALSE_POSITIVE'];
@@ -20,7 +21,7 @@ const emptyForm = {
 };
 
 export default function Incidents() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [records, setRecords] = useState([]);
   const [filters, setFilters] = useState({ severity: '', status: '', category: '', search: '' });
   const [form, setForm] = useState(emptyForm);
@@ -162,12 +163,12 @@ export default function Incidents() {
                   <h2 className="text-lg font-semibold">{incident.title}</h2>
                   <p className="mt-2 text-sm text-sky-100/80">{incident.description}</p>
                 </div>
-                <time className="text-sm text-sky-100/60">{formatDate(incident.createdAt)}</time>
+                <time className="text-sm text-sky-100/60">{formatDateTime(incident.createdAt, language)}</time>
               </div>
               <div className="mt-3 grid gap-2 text-sm text-sky-100/65 md:grid-cols-3">
                 <p>{t('assignedTo')}: {incident.assignedToEmail || t('notAssigned')}</p>
                 <p>{t('relatedAuditLogId')}: {incident.relatedAuditLogId || '—'}</p>
-                <p>{t('resolvedAt')}: {formatDate(incident.resolvedAt)}</p>
+                <p>{t('resolvedAt')}: {formatDateTime(incident.resolvedAt, language)}</p>
               </div>
               {incident.resolutionNotes && <p className="mt-3 rounded-xl border border-sky-100/10 bg-sky-950/40 p-3 text-sm text-sky-100/75">{incident.resolutionNotes}</p>}
               <div className="mt-4 flex flex-wrap gap-2">
@@ -233,8 +234,4 @@ function statusTone(status) {
   if (status === 'RESOLVED') return 'emerald';
   if (status === 'FALSE_POSITIVE') return 'amber';
   return 'sky';
-}
-
-function formatDate(value) {
-  return value ? new Date(value).toLocaleString() : '—';
 }

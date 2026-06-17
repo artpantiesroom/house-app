@@ -1,82 +1,51 @@
 # House App
 
-A prototype residential building management application for apartment administrators and residents.
+A prototype full-stack residential building management application for apartment administrators and residents.
 
 ISO/IEC 27001-inspired controls are implemented for prototype purposes only.
 
 ## Status
 
-Stage 1 authentication foundation is implemented:
+The prototype has completed staged implementation through Stage 7B cleanup:
 
-- React/Vite frontend in `frontend/`
-- Java/Spring Boot backend in `backend/`
-- SQLite persistence for users and refresh tokens
-- JWT access tokens
-- refresh token rotation
-- BCrypt password hashing
-- forced password change support
+- Stage 1: authentication, JWT access tokens, refresh token rotation, logout, forced password change, role guards.
+- Stage 2: residents, apartments, administrator resident CRUD, resident profile, resident data isolation.
+- Stage 3: announcements and building contacts for administrator and resident workflows.
+- Stage 4: maintenance requests for residents and administrators.
+- Stage 5: prototype payment/accounting records.
+- Stage 6: backend-created audit logs and administrator security incidents.
+- Stage 7A: authenticated avatar upload, replacement, removal, and local avatar serving.
+- Stage 7B: frontend mock cleanup, route/navigation review, i18n polish, README finalization, and PWA-readiness review.
 
-Stage 2 residents and apartments are implemented:
+This is not production-certified software and is not connected to a real payment provider.
 
-- apartment data model and administrator apartment API
-- resident profile data model linked to resident users
-- administrator resident management API and frontend integration
-- resident profile API and frontend page
-- server-side resident data isolation
-- administrator-created residents with temporary passwords and `mustChangePassword=true`
-- avatar path field in the data model
+## Stack
 
-Stage 3 announcements and contacts are implemented:
+Frontend:
 
-- SQLite/Flyway tables for announcements and building contacts
-- administrator announcement CRUD with publish/archive workflow
-- resident read-only published announcement API
-- administrator contact CRUD with soft deactivate
-- resident read-only active contacts API
-- frontend integration for admin/resident announcements and contacts
-- bilingual UK/EN announcement and contact fields with frontend fallback to Ukrainian
+- React 18
+- Vite
+- React Router v6
+- Tailwind CSS
+- Framer Motion
+- Lucide React
+- React Context API
+- native `fetch`
 
-Stage 4 maintenance requests are implemented:
+Backend:
 
-- SQLite/Flyway table for resident maintenance requests
-- resident request creation and personal request history
-- administrator request list, filters, status updates, priority updates, responses, and internal notes
-- server-side resident ownership checks
-- frontend integration for resident and administrator maintenance pages
-
-Stage 5 payments are implemented:
-
-- SQLite/Flyway table for prototype payment/accounting records
-- resident read-only payment visibility with ownership checks
-- administrator payment creation, editing, status changes, cancellation, and filters
-- money stored as integer minor units, for example `125000 = 1250.00 UAH`
-- frontend integration for resident and administrator payment pages
-
-Stage 6 audit log and security incidents are implemented:
-
-- SQLite/Flyway tables for append-only audit records and security incident records
-- administrator read-only audit log API with filters
-- administrator security incident management API with create, edit, status update, and soft false-positive close
-- audit events for authentication, residents, maintenance, payments, and security incident operations
-- frontend integration for administrator audit log and incidents pages
-
-Stage 7A avatar upload and profile cleanup are implemented:
-
-- resident avatar upload, replacement, and removal from `/resident/profile`
-- administrator avatar upload, replacement, and removal for existing resident profiles
-- local avatar storage under `backend/uploads/avatars/`
-- authenticated avatar file serving through `/api/files/avatars/{filename}`
-- file validation for JPG, PNG, and WebP up to 2 MB
-
-Full localization cleanup and PWA behavior remain for later stages.
-
-## Requirements
-
-- Java 21 JDK
+- Java 21
+- Spring Boot 3
 - Maven
-- Node.js and npm
-
-Termux needs a real JDK package with `javac`, not only a JRE.
+- Spring Web
+- Spring Security
+- Spring Data JPA
+- Bean Validation
+- SQLite
+- Flyway
+- JWT
+- BCrypt
+- JUnit 5 / Spring Boot Test
 
 ## Directory Structure
 
@@ -98,259 +67,44 @@ house-app-bak/
   .gitignore
 ```
 
-## Backend Configuration
+## Requirements
+
+- Java 21 JDK
+- Maven
+- Node.js and npm
+
+Termux should use a JDK package that includes `javac`, not only a JRE.
+
+## Configuration
 
 Spring Boot does not read `.env` files automatically. Export variables in the shell before starting the backend.
 
-```bash
-cd backend
-export APP_JWT_SECRET='replace-with-at-least-32-random-bytes'
-export APP_CORS_ALLOWED_ORIGINS='http://localhost:5173'
-mvn spring-boot:run
-```
-
-Optional variables:
+Backend variables:
 
 ```text
+APP_JWT_SECRET=replace-with-at-least-32-random-bytes
+APP_CORS_ALLOWED_ORIGINS=http://localhost:5173
 APP_DATABASE_PATH=./data/house-app.db
 APP_UPLOAD_DIR=./uploads
-APP_CORS_ALLOWED_ORIGINS=http://localhost:5173
+APP_JWT_ACCESS_TOKEN_SECONDS=900
+APP_REFRESH_TOKEN_DAYS=7
+APP_REFRESH_TOKEN_REMEMBER_DAYS=30
 SERVER_ADDRESS=0.0.0.0
 SERVER_PORT=8080
 ```
 
-For development only, the backend has an explicit unsafe JWT fallback and prints a warning when it is used. Do not use the fallback outside local prototype testing.
-
-SQLite database location:
-
-```text
-backend/data/house-app.db
-```
-
-Avatar upload location:
-
-```text
-backend/uploads/avatars/
-```
-
-Only generated filenames are stored in SQLite. API responses may include `avatarUrl`; they do not expose absolute filesystem paths.
-
-## Frontend Configuration
-
-Create `frontend/.env` when running against the backend:
+Frontend variable:
 
 ```text
 VITE_API_BASE_URL=http://localhost:8080/api
 ```
 
-Then run:
+Example files are provided at:
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+- `backend/.env.example`
+- `frontend/.env.example`
 
-Production build:
-
-```bash
-cd frontend
-npm run build
-```
-
-## Demo Credentials
-
-- Administrator: `admin@house.com` / `Admin123!`
-- Resident: `resident@house.com` / `Resident123!`
-
-These credentials are for prototype demonstration only.
-
-The seed data also creates four extra prototype residents with apartments and temporary password `TempResident1!`. They are marked as requiring password replacement on first login. These credentials are prototype-only and must not be reused outside local demonstration.
-
-Stage 3 seed data includes five announcements: three published records visible to residents, one draft visible only to administrators, and one archived record visible only to administrators.
-
-Stage 3 seed data also includes five building contacts: management company, plumber, electrician, security, and emergency service. The seeder is idempotent and does not create duplicates on restart.
-
-Stage 4 seed data includes eight maintenance requests across the demo residents, including `NEW`, `IN_PROGRESS`, `WAITING_RESIDENT`, `RESOLVED`, and `CANCELLED` statuses, plus urgent and common category examples.
-
-Stage 5 seed data includes twelve payment records across demo residents and apartments, with `PENDING`, `PAID`, `OVERDUE`, and `CANCELLED` statuses, several months, and multiple payment types.
-
-Stage 6 seed data includes at least fifteen audit log records across authentication, resident, announcement, contact, maintenance, payment, incident, and system events. It also includes five security incidents covering `OPEN`, `INVESTIGATING`, `RESOLVED`, `FALSE_POSITIVE`, and high/critical severity examples. The seeder is idempotent and does not create duplicates on restart.
-
-## Authentication Architecture
-
-- Access token lifetime: 15 minutes.
-- Access token storage: React application memory only.
-- Refresh token lifetime: 7 days, or 30 days with “Remember me”.
-- Refresh token storage: frontend `localStorage`.
-- Refresh token database storage: SHA-256 hash only.
-- Refresh tokens rotate on `/api/auth/refresh`.
-- Logout revokes the submitted refresh token.
-- Password change revokes old refresh tokens and returns a new token pair.
-
-Refresh tokens in `localStorage` are more exposed to XSS than HttpOnly cookies. This is a prototype tradeoff, not a production-perfect design.
-
-## API
-
-Public:
-
-```text
-GET  /api/health
-POST /api/auth/login
-POST /api/auth/refresh
-POST /api/auth/logout
-```
-
-Authenticated:
-
-```text
-GET  /api/auth/me
-POST /api/auth/change-password
-```
-
-Administrator residents and apartments:
-
-```text
-GET    /api/admin/apartments
-POST   /api/admin/apartments
-GET    /api/admin/apartments/{id}
-PUT    /api/admin/apartments/{id}
-DELETE /api/admin/apartments/{id}
-
-GET    /api/admin/residents
-POST   /api/admin/residents
-GET    /api/admin/residents/{id}
-PUT    /api/admin/residents/{id}
-DELETE /api/admin/residents/{id}
-POST   /api/admin/residents/{id}/avatar
-DELETE /api/admin/residents/{id}/avatar
-```
-
-`DELETE /api/admin/residents/{id}` performs a soft deactivate of the linked user instead of physically deleting the account.
-
-`{id}` in the administrator avatar endpoints is the resident profile id used by the admin residents API. Avatar upload expects multipart field `file`.
-
-Resident profile:
-
-```text
-GET /api/resident/profile
-PUT /api/resident/profile
-POST /api/resident/profile/avatar
-DELETE /api/resident/profile/avatar
-```
-
-Residents may update only safe profile fields: phone, emergency contact fields, and preferred language. Apartment assignment, notes, role, email, enabled status, and password-change state remain administrator/server controlled.
-
-Resident avatar upload expects multipart field `file`. Allowed formats are `image/jpeg`, `image/png`, and `image/webp`; maximum size is 2 MB. The backend validates MIME type, extension, and basic file signature bytes.
-
-Administrator announcements and contacts:
-
-```text
-GET    /api/admin/announcements
-POST   /api/admin/announcements
-GET    /api/admin/announcements/{id}
-PUT    /api/admin/announcements/{id}
-DELETE /api/admin/announcements/{id}
-PATCH  /api/admin/announcements/{id}/publish
-PATCH  /api/admin/announcements/{id}/archive
-
-GET    /api/admin/contacts
-POST   /api/admin/contacts
-GET    /api/admin/contacts/{id}
-PUT    /api/admin/contacts/{id}
-DELETE /api/admin/contacts/{id}
-```
-
-`DELETE /api/admin/announcements/{id}` archives the announcement. `DELETE /api/admin/contacts/{id}` performs a soft deactivate.
-
-Resident announcements and contacts:
-
-```text
-GET /api/resident/announcements
-GET /api/resident/announcements/{id}
-GET /api/resident/contacts
-```
-
-Residents can read only published, non-expired announcements and active contacts.
-
-Administrator maintenance requests:
-
-```text
-GET   /api/admin/maintenance-requests
-GET   /api/admin/maintenance-requests/{id}
-PATCH /api/admin/maintenance-requests/{id}
-```
-
-The admin list supports `status`, `category`, `priority`, and `search` filters. Admin updates may change status, priority, `adminResponse`, and `internalNotes`.
-
-Resident maintenance requests:
-
-```text
-GET  /api/resident/maintenance-requests
-POST /api/resident/maintenance-requests
-GET  /api/resident/maintenance-requests/{id}
-```
-
-Residents can create and read only their own requests. Apartment and resident ownership are derived from the authenticated account, not from request body fields.
-
-Administrator payments:
-
-```text
-GET    /api/admin/payments
-POST   /api/admin/payments
-GET    /api/admin/payments/{id}
-PUT    /api/admin/payments/{id}
-PATCH  /api/admin/payments/{id}/status
-DELETE /api/admin/payments/{id}
-```
-
-The admin list supports `status`, `type`, `residentId`, `apartmentId`, `periodYear`, `periodMonth`, and `search` filters. `DELETE` marks a payment as `CANCELLED`; it does not hard delete records.
-
-Resident payments:
-
-```text
-GET /api/resident/payments
-GET /api/resident/payments/{id}
-```
-
-Residents can read only their own payment records. Payment records are prototype accounting records only; no real payment processing is integrated.
-
-Administrator audit logs:
-
-```text
-GET /api/admin/audit-logs
-GET /api/admin/audit-logs/{id}
-```
-
-The audit list supports `action`, `entityType`, `actorUserId`, `entityId`, `dateFrom`, `dateTo`, and `search` filters. Audit logs are append-only through the public API: there are no public create, update, or delete audit log endpoints.
-
-Administrator security incidents:
-
-```text
-GET    /api/admin/security-incidents
-POST   /api/admin/security-incidents
-GET    /api/admin/security-incidents/{id}
-PUT    /api/admin/security-incidents/{id}
-PATCH  /api/admin/security-incidents/{id}/status
-DELETE /api/admin/security-incidents/{id}
-```
-
-The incident list supports `severity`, `status`, `category`, `assignedToUserId`, `dateFrom`, `dateTo`, and `search` filters. `DELETE` is a soft close that marks the incident as `FALSE_POSITIVE` and sets `resolvedAt`; it does not hard delete the record.
-
-Avatar files:
-
-```text
-GET /api/files/avatars/{filename}
-```
-
-Avatar file serving is authenticated. The frontend fetches avatar files with the access token and renders a temporary browser object URL. Filenames are generated UUID-based names and path traversal attempts are rejected.
-
-Role-check endpoints used by Stage 1 tests:
-
-```text
-GET /api/admin/auth-check
-GET /api/resident/auth-check
-```
+Do not commit active `.env` files or real secrets.
 
 ## Local Run
 
@@ -359,6 +113,7 @@ Backend:
 ```bash
 cd backend
 export APP_JWT_SECRET='replace-with-at-least-32-random-bytes'
+export APP_CORS_ALLOWED_ORIGINS='http://localhost:5173'
 mvn spring-boot:run
 ```
 
@@ -366,14 +121,131 @@ Frontend:
 
 ```bash
 cd frontend
-printf 'VITE_API_BASE_URL=http://localhost:8080/api\n' > .env
 npm install
 npm run dev
 ```
 
-## Ngrok
+Production frontend build:
 
-Example with separate frontend and backend public URLs:
+```bash
+cd frontend
+npm run build
+```
+
+## Demo Accounts
+
+- Administrator: `admin@house.com` / `Admin123!`
+- Resident: `resident@house.com` / `Resident123!`
+
+These credentials and seeded records are for local prototype demonstration only. Additional seeded resident accounts may require password replacement on first login.
+
+## Implemented Modules
+
+Authentication:
+
+- `POST /api/auth/login`
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
+- `POST /api/auth/change-password`
+- `GET /api/auth/me`
+
+Residents and apartments:
+
+- Administrator resident management under `/api/admin/residents`
+- Administrator apartment management under `/api/admin/apartments`
+- Resident profile under `/api/resident/profile`
+- Server-side resident ownership checks
+
+Announcements and contacts:
+
+- Administrator announcement CRUD and publish/archive workflow
+- Resident read-only published announcements
+- Administrator contact CRUD with soft deactivate
+- Resident read-only active contacts
+
+Maintenance:
+
+- Resident request creation and personal request history
+- Administrator request filters and status/priority/response updates
+
+Payments:
+
+- Administrator payment creation, editing, status changes, and cancellation
+- Resident read-only access to their own payment records
+- Amounts are stored as integer minor currency units, for example `10000 = 100.00 UAH`
+- No real payment processing is integrated
+
+Audit and incidents:
+
+- Backend-created audit records
+- Administrator read-only audit log access
+- Administrator security incident management
+- Audit records are append-only through the public API: there are no public create, update, or delete audit endpoints
+
+Avatars:
+
+- Resident avatar upload, replacement, and removal
+- Administrator avatar upload, replacement, and removal for existing resident profiles
+- Authenticated avatar file serving through `/api/files/avatars/{filename}`
+- Allowed formats: JPEG, PNG, WebP
+- Maximum file size: 2 MB
+
+## Storage
+
+SQLite database:
+
+```text
+backend/data/house-app.db
+```
+
+Avatar uploads:
+
+```text
+backend/uploads/avatars/
+```
+
+Only generated avatar filenames/relative paths are stored in SQLite. API responses may include `avatarUrl`; absolute filesystem paths are not exposed.
+
+## Security Notes
+
+- JWT access tokens are short-lived and stored only in React application memory.
+- Refresh tokens are stored in frontend `localStorage` and only SHA-256 hashes are stored in SQLite.
+- Refresh tokens rotate on refresh and are revoked on logout.
+- Passwords are hashed with BCrypt.
+- Role-based access is enforced server-side for administrator and resident endpoints.
+- New administrator-created residents receive temporary passwords and must replace them when required.
+- Refresh tokens in `localStorage` are more exposed to XSS than HttpOnly cookies. This is a prototype tradeoff, not a production-perfect design.
+- CORS allowed origins are configured through `APP_CORS_ALLOWED_ORIGINS`.
+- No password hashes, refresh token hashes, access tokens, or raw passwords should be exposed through APIs or logs.
+
+## Routes
+
+Frontend routes include:
+
+```text
+/login
+/change-password
+/forbidden
+/admin/dashboard
+/admin/residents
+/admin/announcements
+/admin/maintenance
+/admin/payments
+/admin/audit-log
+/admin/incidents
+/admin/contacts
+/resident/home
+/resident/requests
+/resident/payments
+/resident/contacts
+/resident/profile
+```
+
+Unknown frontend routes redirect to `/login`; authenticated users are then routed by role through the existing guards.
+
+## Tunnel Usage
+
+For ngrok or a similar tunnel, expose frontend and backend separately if needed:
 
 ```bash
 cd backend
@@ -383,7 +255,7 @@ export SERVER_ADDRESS=0.0.0.0
 mvn spring-boot:run
 ```
 
-Set the frontend API URL locally:
+Set the frontend API URL:
 
 ```text
 VITE_API_BASE_URL=https://your-backend.ngrok-free.app/api
@@ -391,7 +263,13 @@ VITE_API_BASE_URL=https://your-backend.ngrok-free.app/api
 
 Do not commit temporary ngrok URLs. Free ngrok URLs may change between sessions.
 
-## Tests
+## PWA Readiness / Future Work
+
+The frontend is structured for future PWA work through a centralized API client, configurable backend URL, responsive layouts, role guards, and centralized authentication state.
+
+Full PWA behavior is not implemented. There is no service worker, offline cache, push notification flow, background sync, or install prompt.
+
+## Testing
 
 Backend:
 
@@ -405,16 +283,18 @@ Frontend:
 
 ```bash
 cd frontend
-npm install
 npm run build
 ```
 
+Frontend test infrastructure is not currently included.
+
 ## Known Limitations
 
-- This is not production-certified.
-- No real payment provider is integrated.
-- Avatar upload does not resize, crop, optimize, or scan images.
-- Avatar files use local filesystem storage only; no cloud/object storage is integrated.
-- No production SIEM, monitoring pipeline, or incident automation is integrated.
-- Full Ukrainian/English localization is not complete; Stage 7A adds only avatar UI labels on top of earlier stage labels.
-- PWA behavior is not implemented yet.
+- Prototype only; not production-certified.
+- No real payment gateway or payment processing.
+- No cloud/object storage for avatar files.
+- No production SIEM, monitoring pipeline, or automated incident response.
+- No full PWA/offline mode.
+- No avatar image resizing, cropping, optimization, or malware scanning.
+- No email/SMS notification workflow.
+- Building information shown on resident home/contact pages is currently a small static frontend configuration because no dedicated backend building-info endpoint exists.

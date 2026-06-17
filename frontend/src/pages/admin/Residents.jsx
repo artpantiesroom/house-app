@@ -6,8 +6,6 @@ import PasswordField from '../../components/PasswordField.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { apartmentsApi } from '../../api/apartmentsApi.js';
 import { residentsApi } from '../../api/residentsApi.js';
-import { useAudit } from '../../context/AuditContext.jsx';
-import { useAuth } from '../../context/AuthContext.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { UKRAINIAN_PHONE_PLACEHOLDER, formatUkrainianPhone, isValidUkrainianPhone } from '../../utils/phoneFormat.js';
 
@@ -28,9 +26,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
 export default function Residents() {
-  const { user } = useAuth();
   const { t } = useLanguage();
-  const { appendAuditLog } = useAudit();
   const [residents, setResidents] = useState([]);
   const [apartments, setApartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -107,10 +103,11 @@ export default function Residents() {
     setError('');
     setSuccess('');
     try {
-      const saved = editingId
-        ? await residentsApi.update(editingId, payload())
-        : await residentsApi.create({ ...payload(), temporaryPassword: form.temporaryPassword });
-      appendAuditLog({ actor: user.email, action: editingId ? 'RESIDENT_EDITED' : 'RESIDENT_CREATED', target: saved.id, result: 'SUCCESS' });
+      if (editingId) {
+        await residentsApi.update(editingId, payload());
+      } else {
+        await residentsApi.create({ ...payload(), temporaryPassword: form.temporaryPassword });
+      }
       setForm(emptyForm);
       setEditingId('');
       setSuccess(editingId ? t('residentUpdated') : t('residentCreatedTemporaryPassword'));
@@ -129,7 +126,6 @@ export default function Residents() {
     setSuccess('');
     try {
       await residentsApi.deactivate(resident.id);
-      appendAuditLog({ actor: user.email, action: 'RESIDENT_DEACTIVATED', target: resident.id, result: 'SUCCESS' });
       setSuccess(t('residentDeactivated'));
       await load();
     } catch (deleteError) {

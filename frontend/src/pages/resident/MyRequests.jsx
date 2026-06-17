@@ -4,6 +4,7 @@ import DataClassificationBadge from '../../components/DataClassificationBadge.js
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { maintenanceApi } from '../../api/maintenanceApi.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
+import { formatDateTime } from '../../utils/date.js';
 
 export const requestCategories = [
   ['PLUMBING', 'plumbing'],
@@ -47,7 +48,7 @@ export function getRequestPriorityLabel(priority, t) {
 }
 
 export default function MyRequests() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ title: '', category: '', description: '' });
@@ -139,7 +140,7 @@ export default function MyRequests() {
             </div>
             <p className="mt-2 text-sm text-sky-100/75">{request.description} <DataClassificationBadge level="Internal" /></p>
             {request.adminResponse && <p className="mt-3 rounded-xl border border-emerald-300/30 bg-emerald-400/10 p-3 text-sm text-emerald-50"><span className="font-semibold">{t('adminResponse')}:</span> {request.adminResponse}</p>}
-            <p className="mt-3 text-xs text-sky-100/55">{t('createdAt')}: {formatDate(request.createdAt)} · {t('updatedAt')}: {formatDate(request.updatedAt)}</p>
+            <p className="mt-3 text-xs text-sky-100/55">{t('createdAt')}: {formatDateTime(request.createdAt, language)} · {t('updatedAt')}: {formatDateTime(request.updatedAt, language)}</p>
           </article>
         )) : <div className="glass rounded-2xl p-5 text-sky-100/70">{t('noRequests')}</div>}
       </div>
@@ -149,9 +150,4 @@ export default function MyRequests() {
 
 function Badge({ children }) {
   return <span className="rounded-full border border-sky-100/15 bg-sky-950/50 px-2 py-1 text-xs">{children}</span>;
-}
-
-function formatDate(value) {
-  if (!value) return '—';
-  return new Date(value).toLocaleString();
 }

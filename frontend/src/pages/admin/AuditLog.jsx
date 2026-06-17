@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { auditApi } from '../../api/auditApi.js';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
+import { formatDateTime } from '../../utils/date.js';
 
 const auditActions = [
   'LOGIN_SUCCESS', 'LOGIN_FAILED', 'LOGOUT', 'PASSWORD_CHANGED',
@@ -17,7 +18,7 @@ const auditActions = [
 const entityTypes = ['AUTH', 'USER', 'RESIDENT', 'APARTMENT', 'ANNOUNCEMENT', 'CONTACT', 'MAINTENANCE_REQUEST', 'PAYMENT', 'SECURITY_INCIDENT', 'SYSTEM'];
 
 export default function AuditLog() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [records, setRecords] = useState([]);
   const [filters, setFilters] = useState({ action: '', entityType: '', search: '', from: '', to: '' });
   const [loading, setLoading] = useState(true);
@@ -70,7 +71,7 @@ export default function AuditLog() {
                   <p className="font-semibold">{entry.actorEmail || t('systemActor')} <span className="text-xs text-sky-100/55">{entry.actorRole || 'SYSTEM'}</span></p>
                   <p className="mt-1 text-sm text-sky-100/70">{t(`auditAction${entry.action}`)} · {t(`auditEntity${entry.entityType}`)}{entry.entityId ? ` #${entry.entityId}` : ''}</p>
                 </div>
-                <time className="text-sm text-sky-100/65">{formatDate(entry.createdAt)}</time>
+                <time className="text-sm text-sky-100/65">{formatDateTime(entry.createdAt, language)}</time>
               </div>
               <p className="mt-3 text-sm text-sky-100/85">{entry.summary}</p>
               {entry.metadataJson && <pre className="mt-3 overflow-x-auto rounded-xl border border-sky-100/10 bg-sky-950/50 p-3 text-xs text-sky-100/70">{formatJson(entry.metadataJson)}</pre>}
@@ -89,10 +90,6 @@ function Select({ label, value, onChange, options, labelFor, allLabel }) {
 
 function TextInput({ label, value, onChange, type = 'text' }) {
   return <label className="block text-sm">{label}<input type={type} value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/70 px-3" /></label>;
-}
-
-function formatDate(value) {
-  return value ? new Date(value).toLocaleString() : '—';
 }
 
 function formatJson(value) {

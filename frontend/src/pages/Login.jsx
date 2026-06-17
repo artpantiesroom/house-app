@@ -7,11 +7,11 @@ import LanguageToggle from '../components/LanguageToggle.jsx';
 import PasswordField from '../components/PasswordField.jsx';
 import PasswordStrengthIndicator, { getPasswordStrength } from '../components/PasswordStrengthIndicator.jsx';
 import FooterSecurityBadge from '../components/FooterSecurityBadge.jsx';
-import { sanitizeText } from '../data/mockData.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const normalizeEmail = (value) => String(value || '').replace(/[<>"]/g, '').trim();
 
 export default function Login() {
   const { user, authReady, login } = useAuth();
@@ -38,7 +38,7 @@ export default function Login() {
   };
 
   const updateField = (field, value) => {
-    setForm({ ...form, [field]: field === 'email' ? sanitizeText(value) : value });
+    setForm({ ...form, [field]: field === 'email' ? normalizeEmail(value) : value });
     setErrors((current) => ({ ...current, [field]: '', form: '' }));
   };
 
@@ -50,7 +50,7 @@ export default function Login() {
     setLoading(true);
     setErrors({});
     try {
-      const loggedInUser = await login({ email: sanitizeText(form.email), password: form.password, remember: form.remember });
+      const loggedInUser = await login({ email: normalizeEmail(form.email), password: form.password, remember: form.remember });
       const fallback = loggedInUser.mustChangePassword ? '/change-password' : loggedInUser.role === 'ADMIN' ? '/admin/dashboard' : '/resident/home';
       navigate(loggedInUser.mustChangePassword ? fallback : location.state?.from?.pathname || fallback, { replace: true });
     } catch (error) {

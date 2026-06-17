@@ -4,6 +4,7 @@ import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { announcementsApi } from '../../api/announcementsApi.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
+import { formatDateTime } from '../../utils/date.js';
 
 const emptyForm = {
   titleUk: '',
@@ -217,7 +218,7 @@ export default function Announcements() {
         <Select label={l.category} value={filters.category} onChange={(value) => setFilters((current) => ({ ...current, category: value }))} options={['', ...categoryOptions]} labels={{ '': { uk: l.all, en: l.all }, ...categoryLabels }} language={language} />
         <Select label={l.priority} value={filters.priority} onChange={(value) => setFilters((current) => ({ ...current, priority: value }))} options={['', ...priorityOptions]} labels={{ '': { uk: l.all, en: l.all }, ...priorityLabels }} language={language} />
         <div className="flex items-end gap-2">
-          <TextInput label="Search" value={filters.search} onChange={(value) => setFilters((current) => ({ ...current, search: value }))} />
+          <TextInput label={t('search')} value={filters.search} onChange={(value) => setFilters((current) => ({ ...current, search: value }))} />
           <button onClick={load} className="focus-ring h-10 rounded-xl border border-sky-100/20 px-3 text-sm">{t('refresh')}</button>
         </div>
       </div>
@@ -240,8 +241,8 @@ export default function Announcements() {
                 <Pill>{priorityLabels[announcement.priority]?.[language] || announcement.priority}</Pill>
                 <Pill>{statusLabels[announcement.status]?.[language] || announcement.status}</Pill>
               </div>
-              <p className="mt-3 text-xs text-sky-100/55">{l.publishedAt}: {formatDate(announcement.publishedAt)}</p>
-              <p className="text-xs text-sky-100/55">{l.expiresAt}: {formatDate(announcement.expiresAt)}</p>
+              <p className="mt-3 text-xs text-sky-100/55">{l.publishedAt}: {formatDateTime(announcement.publishedAt, language)}</p>
+              <p className="text-xs text-sky-100/55">{l.expiresAt}: {formatDateTime(announcement.expiresAt, language)}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <button onClick={() => edit(announcement)} className="focus-ring rounded-xl border border-sky-100/20 px-3 py-2 text-sm">{l.edit}</button>
                 {announcement.status !== 'PUBLISHED' && <button disabled={busyId === announcement.id} onClick={() => action(announcement.id, 'publish')} className="focus-ring rounded-xl border border-emerald-300/40 px-3 py-2 text-sm text-emerald-100 disabled:opacity-60">{l.publish}</button>}
@@ -269,11 +270,6 @@ function Select({ label, value, onChange, options, labels: optionLabels, languag
 
 function Pill({ children }) {
   return <span className="rounded-full border border-sky-100/15 bg-sky-950/40 px-2 py-1">{children}</span>;
-}
-
-function formatDate(value) {
-  if (!value) return '—';
-  return new Date(value).toLocaleString();
 }
 
 function toDateTimeLocal(value) {

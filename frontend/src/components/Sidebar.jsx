@@ -3,11 +3,12 @@ import { Bell, Building2, ClipboardList, CreditCard, FileClock, Home, LayoutDash
 import FooterSecurityBadge from './FooterSecurityBadge.jsx';
 import LanguageToggle from './LanguageToggle.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { formatDateTime } from '../utils/date.js';
 
 const iconMap = { dashboard: LayoutDashboard, residents: Users, announcements: Bell, maintenance: ClipboardList, payments: CreditCard, audit: FileClock, incidents: ShieldAlert, contacts: Building2, home: Home, requests: ClipboardList, profile: UserCircle };
 
 export default function Sidebar({ user, links, onLogout }) {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   return (
     <>
       <aside className="glass fixed left-4 top-4 hidden h-[calc(100vh-2rem)] w-72 flex-col rounded-2xl p-4 lg:flex">
@@ -20,7 +21,7 @@ export default function Sidebar({ user, links, onLogout }) {
         </div>
         <div className="mb-5 rounded-xl bg-sky-400/10 p-3 text-xs text-sky-100/75">
           <p className="font-semibold text-sky-50">{user.role === 'ADMIN' ? t('adminRole') : t('residentRole')}</p>
-          <p>{t('lastLogin')}: {new Date(user.lastLoginTime).toLocaleString()}</p>
+          <p>{t('lastLogin')}: {formatDateTime(user.lastLoginTime, language)}</p>
         </div>
         <div className="mb-4"><LanguageToggle /></div>
         <nav className="flex flex-1 flex-col gap-2">

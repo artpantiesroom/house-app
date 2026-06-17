@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { contactsApi } from '../../api/contactsApi.js';
-import { buildingInfo } from '../../data/mockData.js';
+import { buildingInfo } from '../../config/buildingInfo.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 
 const labels = {

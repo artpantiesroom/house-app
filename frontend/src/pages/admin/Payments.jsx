@@ -5,6 +5,7 @@ import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { paymentsApi } from '../../api/paymentsApi.js';
 import { residentsApi } from '../../api/residentsApi.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
+import { formatDate } from '../../utils/date.js';
 import { formatMoney, minorToMoneyInput, parseMoneyToMinor } from '../../utils/money.js';
 import { getPaymentStatusLabel, getPaymentTypeLabel, paymentStatuses, paymentTypes } from '../resident/MyPayments.jsx';
 
@@ -196,7 +197,7 @@ export default function Payments() {
                   </div>
                 </div>
               </div>
-              <p className="mt-3 text-xs text-sky-100/55">{t('dueDate')}: {formatDate(payment.dueDate)}{payment.paidAt ? ` · ${t('paidAt')}: ${formatDate(payment.paidAt)}` : ''}</p>
+              <p className="mt-3 text-xs text-sky-100/55">{t('dueDate')}: {formatDate(payment.dueDate, language)}{payment.paidAt ? ` · ${t('paidAt')}: ${formatDate(payment.paidAt, language)}` : ''}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <button onClick={() => edit(payment)} className="focus-ring rounded-xl border border-sky-100/20 px-3 py-2 text-sm">{t('edit')}</button>
                 {payment.status !== 'PAID' && <button disabled={busyId === payment.id} onClick={() => changeStatus(payment, 'PAID')} className="focus-ring rounded-xl border border-emerald-300/40 px-3 py-2 text-sm text-emerald-100 disabled:opacity-60">{t('markPaid')}</button>}
@@ -235,9 +236,4 @@ function localized(item, field, language) {
     return item[`${field}En`] || item[`${field}Uk`] || '';
   }
   return item[`${field}Uk`] || '';
-}
-
-function formatDate(value) {
-  if (!value) return '—';
-  return new Date(value).toLocaleDateString();
 }

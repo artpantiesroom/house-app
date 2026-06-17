@@ -4,6 +4,7 @@ import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { maintenanceApi } from '../../api/maintenanceApi.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
+import { formatDateTime } from '../../utils/date.js';
 import {
   getRequestCategoryLabel,
   getRequestPriorityLabel,
@@ -16,7 +17,7 @@ import {
 const emptyFilters = { status: '', category: '', priority: '', search: '' };
 
 export default function MaintenanceAdmin() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [requests, setRequests] = useState([]);
   const [filters, setFilters] = useState(emptyFilters);
   const [selected, setSelected] = useState(null);
@@ -120,7 +121,7 @@ export default function MaintenanceAdmin() {
                   <Badge>{getRequestPriorityLabel(request.priority, t)}</Badge>
                   <Badge>{getRequestCategoryLabel(request.category, t)}</Badge>
                 </div>
-                <p className="mt-3 text-xs text-sky-100/55">{t('createdAt')}: {formatDate(request.createdAt)}</p>
+                <p className="mt-3 text-xs text-sky-100/55">{t('createdAt')}: {formatDateTime(request.createdAt, language)}</p>
               </article>
             )) : <div className="glass rounded-2xl p-5 text-sky-100/70">{t('noRequests')}</div>}
           </div>
@@ -136,7 +137,7 @@ export default function MaintenanceAdmin() {
                 <FilterSelect label={t('priority')} value={form.priority} onChange={(value) => setForm((current) => ({ ...current, priority: value }))} options={requestPriorities} t={t} />
                 <label className="block text-sm">{t('adminResponse')}<textarea maxLength={3000} value={form.adminResponse} onChange={(event) => setForm((current) => ({ ...current, adminResponse: event.target.value }))} className="focus-ring mt-1 min-h-28 w-full rounded-xl border border-sky-100/15 bg-sky-950/50 px-3 py-2" /></label>
                 <label className="block text-sm">{t('internalNotes')}<textarea maxLength={3000} value={form.internalNotes} onChange={(event) => setForm((current) => ({ ...current, internalNotes: event.target.value }))} className="focus-ring mt-1 min-h-28 w-full rounded-xl border border-sky-100/15 bg-sky-950/50 px-3 py-2" /></label>
-                <p className="text-xs text-sky-100/55">{t('updatedAt')}: {formatDate(selected.updatedAt)} · {t('resolvedAt')}: {formatDate(selected.resolvedAt)}</p>
+                <p className="text-xs text-sky-100/55">{t('updatedAt')}: {formatDateTime(selected.updatedAt, language)} · {t('resolvedAt')}: {formatDateTime(selected.resolvedAt, language)}</p>
                 <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60">{saving ? <LoadingSpinner label={t('saving')} /> : t('updateRequest')}</button>
               </>
             ) : <p className="text-sm text-sky-100/70">{t('selectRequest')}</p>}
@@ -160,9 +161,4 @@ function FilterSelect({ label, value, onChange, options, allLabel, t }) {
 
 function Badge({ children }) {
   return <span className="rounded-full border border-sky-100/15 bg-sky-950/50 px-2 py-1">{children}</span>;
-}
-
-function formatDate(value) {
-  if (!value) return '—';
-  return new Date(value).toLocaleString();
 }
