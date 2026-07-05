@@ -96,7 +96,7 @@ export default function MaintenanceAdmin() {
     <section className="space-y-5">
       <PageHeader title={t('maintenanceTitle')} subtitle={t('maintenanceSubtitle')} />
 
-      <div className="glass grid gap-3 rounded-2xl p-4 md:grid-cols-5">
+      <div className="glass grid gap-3 rounded-3xl p-4 md:grid-cols-5">
         <FilterSelect label={t('status')} value={filters.status} onChange={(value) => setFilters((current) => ({ ...current, status: value }))} options={requestStatuses} allLabel={t('all')} t={t} />
         <FilterSelect label={t('category')} value={filters.category} onChange={(value) => setFilters((current) => ({ ...current, category: value }))} options={requestCategories} allLabel={t('all')} t={t} />
         <FilterSelect label={t('priority')} value={filters.priority} onChange={(value) => setFilters((current) => ({ ...current, priority: value }))} options={requestPriorities} allLabel={t('all')} t={t} />
@@ -111,7 +111,7 @@ export default function MaintenanceAdmin() {
         <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="grid gap-3">
             {requests.length ? requests.map((request) => (
-              <article key={request.id} className={`glass cursor-pointer rounded-2xl p-4 transition ${selected?.id === request.id ? 'ring-2 ring-accent' : ''}`} onClick={() => select(request)}>
+              <article key={request.id} className={`glass cursor-pointer rounded-3xl p-4 transition ${selected?.id === request.id ? 'ring-2 ring-accent ring-offset-2 ring-offset-oceanDark' : ''}`} onClick={() => select(request)}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h2 className="text-lg font-semibold">{request.title}</h2>
@@ -131,7 +131,7 @@ export default function MaintenanceAdmin() {
             )) : <EmptyState icon={ClipboardList} title={t('noRequests')} description={t('noRequestsDescription')} />}
           </div>
 
-          <form onSubmit={update} className="glass h-fit space-y-3 rounded-2xl p-4">
+          <form onSubmit={update} className="glass h-fit space-y-3 rounded-3xl p-4">
             {selected ? (
               <>
                 <div>

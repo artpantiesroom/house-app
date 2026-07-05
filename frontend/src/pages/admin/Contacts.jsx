@@ -187,7 +187,7 @@ export default function Contacts() {
     <section className="space-y-5">
       <PageHeader title={t('buildingContactsTitle')} subtitle={t('contactsSubtitle')} />
 
-      <form onSubmit={submit} className="glass space-y-4 rounded-2xl p-4">
+      <form onSubmit={submit} className="glass space-y-4 rounded-3xl p-4">
         <div className="grid gap-3 md:grid-cols-2">
           <TextInput label={l.nameUk} value={form.nameUk} onChange={(value) => updateField('nameUk', value)} required />
           <TextInput label={l.nameEn} value={form.nameEn} onChange={(value) => updateField('nameEn', value)} />
@@ -215,7 +215,7 @@ export default function Contacts() {
         <div className="grid gap-3 md:grid-cols-2">
           {!contacts.length && <EmptyState icon={Building2} title={l.empty} description={t('emptyContactsDescription')} />}
           {contacts.map((contact) => (
-            <article key={contact.id} className={`glass rounded-2xl p-4 ${contact.active ? '' : 'opacity-60'}`}>
+            <article key={contact.id} className={`glass rounded-3xl p-4 ${contact.active ? '' : 'opacity-60'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-semibold">{localized(contact, 'name', language)}</p>
@@ -231,8 +231,8 @@ export default function Contacts() {
                 <p>{l.sortOrder}: {contact.sortOrder} · {contact.active ? t('active') : t('disabled')}</p>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
-                <button onClick={() => edit(contact)} className="focus-ring rounded-xl border border-sky-100/20 px-3 py-2 text-sm">{l.edit}</button>
-                {contact.active && <button disabled={busyId === contact.id} onClick={() => deactivate(contact.id)} className="focus-ring rounded-xl border border-rose-300/40 px-3 py-2 text-sm text-rose-100 disabled:opacity-60">{busyId === contact.id ? t('deactivating') : l.deactivate}</button>}
+                <button onClick={() => edit(contact)} className="secondary-button px-3 py-2">{l.edit}</button>
+                {contact.active && <button disabled={busyId === contact.id} onClick={() => deactivate(contact.id)} className="danger-button px-3 py-2">{busyId === contact.id ? t('deactivating') : l.deactivate}</button>}
               </div>
             </article>
           ))}

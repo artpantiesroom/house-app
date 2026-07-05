@@ -215,7 +215,7 @@ export default function Residents() {
       <PageHeader title={t('residentsTitle')} subtitle={t('residentsSubtitle')} action={<button onClick={load} className="secondary-button">{t('refresh')}</button>} />
       {error && <ErrorState title={t('errorTitle')} description={error} onRetry={load} retryLabel={t('retry')} />}
       {success && <div className="rounded-xl border border-emerald-300/40 bg-emerald-500/15 p-3 text-sm text-emerald-100">{success}</div>}
-      <form onSubmit={save} className="glass grid gap-3 rounded-2xl p-4 md:grid-cols-2 xl:grid-cols-4">
+      <form onSubmit={save} className="glass grid gap-3 rounded-3xl p-4 md:grid-cols-2 xl:grid-cols-4">
         <Field label={t('name')} error={errors.name}><input value={form.name} onChange={(e) => updateField('name', e.target.value)} className={inputClass(errors.name)} /></Field>
         <Field label={t('email')} error={errors.email}><input type="email" value={form.email} onChange={(e) => updateField('email', e.target.value)} className={inputClass(errors.email)} /></Field>
         {!editingId && (
@@ -249,7 +249,7 @@ export default function Residents() {
       ) : (
         <div className="grid gap-3">
           {residents.map((resident) => (
-            <article key={resident.id} className="glass rounded-2xl p-4">
+            <article key={resident.id} className="glass rounded-3xl p-4">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="flex min-w-0 gap-4">
                   <AvatarPreview avatarUrl={resident.avatarUrl} name={resident.name} sizeClass="h-16 w-16" interactive label={t('replaceAvatar')} />
@@ -264,13 +264,13 @@ export default function Residents() {
                   </div>
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-2">
-                  <label className="focus-ring cursor-pointer rounded-xl border border-sky-100/20 px-3 py-2 text-sm">
+                  <label className="secondary-button cursor-pointer px-3 py-2">
                     {avatarBusyId === resident.id ? t('saving') : resident.avatarUrl ? t('replaceAvatar') : t('uploadAvatar')}
                     <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => uploadAvatar(resident, event)} className="sr-only" />
                   </label>
-                  {resident.avatarUrl && <button disabled={avatarBusyId === resident.id} onClick={() => removeAvatar(resident)} className="focus-ring rounded-xl border border-rose-300/40 px-3 py-2 text-sm text-rose-100 disabled:opacity-50">{t('removeAvatar')}</button>}
-                  <button onClick={() => edit(resident)} className="focus-ring rounded-xl border border-sky-100/20 px-3 py-2 text-sm">{t('edit')}</button>
-                  <button disabled={deletingId === resident.id || !resident.enabled} onClick={() => deactivate(resident)} className="focus-ring rounded-xl border border-rose-300/40 px-3 py-2 text-sm text-rose-100 disabled:opacity-50">{deletingId === resident.id ? t('deactivating') : t('deactivate')}</button>
+                  {resident.avatarUrl && <button disabled={avatarBusyId === resident.id} onClick={() => removeAvatar(resident)} className="danger-button px-3 py-2">{t('removeAvatar')}</button>}
+                  <button onClick={() => edit(resident)} className="secondary-button px-3 py-2">{t('edit')}</button>
+                  <button disabled={deletingId === resident.id || !resident.enabled} onClick={() => deactivate(resident)} className="danger-button px-3 py-2">{deletingId === resident.id ? t('deactivating') : t('deactivate')}</button>
                 </div>
               </div>
             </article>

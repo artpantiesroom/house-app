@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Building2, ShieldCheck } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import LanguageToggle from '../components/LanguageToggle.jsx';
@@ -14,6 +14,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const normalizeEmail = (value) => String(value || '').replace(/[<>"]/g, '').trim();
 
 export default function Login() {
+  const reduceMotion = useReducedMotion();
   const { user, authReady, login } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ export default function Login() {
 
   return (
     <main className="grid min-h-screen place-items-center px-4 py-8">
-      <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+      <motion.section initial={{ opacity: 0, y: reduceMotion ? 0 : 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduceMotion ? 0.01 : 0.2, ease: 'easeOut' }} className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
           <LanguageToggle compact />
         </div>

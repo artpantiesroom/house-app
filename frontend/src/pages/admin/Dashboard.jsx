@@ -88,12 +88,12 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <div className="glass rounded-2xl p-5">
+        <div className="glass rounded-3xl p-5">
           <h2 className="mb-4 text-xl font-semibold">{t('latestIncidents')}</h2>
           <div className="space-y-3">
             {!summary.incidents.length && <EmptyState icon={AlertTriangle} title={t('noIncidents')} description={t('noIncidentsDescription')} />}
             {summary.incidents.slice(0, 3).map((incident) => (
-              <div key={incident.id} className="rounded-xl bg-sky-400/10 p-3">
+              <div key={incident.id} className="rounded-2xl border border-sky-100/10 bg-sky-400/10 p-3 transition hover:border-primary/40 hover:bg-sky-400/15">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <p className="font-semibold">{incident.title}</p>
                   <StatusBadge tone={severityTone(incident.severity)}>{t(`incidentSeverity${incident.severity}`)}</StatusBadge>
@@ -106,12 +106,12 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
-        <div className="glass rounded-2xl p-5">
+        <div className="glass rounded-3xl p-5">
           <h2 className="mb-4 text-xl font-semibold">{t('latestAudit')}</h2>
           <div className="space-y-3">
             {!summary.auditRecords.length && <EmptyState icon={FileClock} title={t('auditEmpty')} description={t('auditEmptyDescription')} />}
             {summary.auditRecords.slice(0, 5).map((entry) => (
-              <div key={entry.id} className="rounded-xl bg-sky-400/10 p-3">
+              <div key={entry.id} className="rounded-2xl border border-sky-100/10 bg-sky-400/10 p-3 transition hover:border-primary/40 hover:bg-sky-400/15">
                 <p className="font-semibold">{t(`auditAction${entry.action}`)}</p>
                 <p className="text-sm text-sky-100/70">{entry.actorEmail || t('systemActor')} · {entry.result || 'SUCCESS'}</p>
               </div>
@@ -152,11 +152,11 @@ export default function Dashboard() {
 
 function CompactList({ title, emptyLabel, items, render }) {
   return (
-    <div className="glass rounded-2xl p-5">
+    <div className="glass rounded-3xl p-5">
       <h2 className="mb-4 text-xl font-semibold">{title}</h2>
       <div className="space-y-3">
         {!items.length && <EmptyState title={emptyLabel} description="" />}
-        {items.map((item) => <div key={item.id} className="rounded-xl border border-sky-100/10 bg-sky-400/10 p-3 transition hover:border-primary/50 hover:bg-sky-400/15">{render(item)}</div>)}
+        {items.map((item) => <div key={item.id} className="rounded-2xl border border-sky-100/10 bg-sky-400/10 p-3 transition hover:border-primary/50 hover:bg-sky-400/15">{render(item)}</div>)}
       </div>
     </div>
   );

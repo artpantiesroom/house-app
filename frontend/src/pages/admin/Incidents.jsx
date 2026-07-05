@@ -126,7 +126,7 @@ export default function Incidents() {
     <section className="space-y-5">
       <PageHeader title={t('securityIncidentsTitle')} subtitle={t('securityIncidentsSubtitle')} />
 
-      <form onSubmit={submit} className="glass space-y-4 rounded-2xl p-4">
+      <form onSubmit={submit} className="glass space-y-4 rounded-3xl p-4">
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label={t('title')} value={form.title} onChange={(value) => setForm((current) => ({ ...current, title: value }))} required maxLength={160} />
           <Select label={t('severity')} value={form.severity} onChange={(value) => setForm((current) => ({ ...current, severity: value }))} options={severities} labelFor={(value) => t(`incidentSeverity${value}`)} />
@@ -145,7 +145,7 @@ export default function Incidents() {
         </div>
       </form>
 
-      <div className="glass grid gap-3 rounded-2xl p-4 md:grid-cols-5">
+      <div className="glass grid gap-3 rounded-3xl p-4 md:grid-cols-5">
         <FilterSelect label={t('severity')} value={filters.severity} onChange={(value) => setFilters((current) => ({ ...current, severity: value }))} options={severities} labelFor={(value) => t(`incidentSeverity${value}`)} allLabel={t('allSeverities')} />
         <FilterSelect label={t('status')} value={filters.status} onChange={(value) => setFilters((current) => ({ ...current, status: value }))} options={statuses} labelFor={(value) => t(`incidentStatus${value}`)} allLabel={t('allStatuses')} />
         <FilterSelect label={t('category')} value={filters.category} onChange={(value) => setFilters((current) => ({ ...current, category: value }))} options={categories} labelFor={(value) => t(`incidentCategory${value}`)} allLabel={t('allCategories')} />
@@ -157,7 +157,7 @@ export default function Incidents() {
         <div className="grid gap-3">
           {!records.length && <EmptyState icon={ShieldAlert} title={t('incidentsEmpty')} description={t('incidentsEmptyDescription')} />}
           {records.map((incident) => (
-            <article key={incident.id} className="glass rounded-2xl p-4">
+            <article key={incident.id} className="glass rounded-3xl p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="mb-2 flex flex-wrap gap-2">
@@ -177,10 +177,10 @@ export default function Incidents() {
               </div>
               {incident.resolutionNotes && <p className="mt-3 rounded-xl border border-sky-100/10 bg-sky-950/40 p-3 text-sm text-sky-100/75">{incident.resolutionNotes}</p>}
               <div className="mt-4 flex flex-wrap gap-2">
-                <button onClick={() => edit(incident)} className="focus-ring rounded-xl border border-sky-100/20 px-3 py-2 text-sm">{t('edit')}</button>
-                {incident.status !== 'INVESTIGATING' && <button disabled={busyId === incident.id} onClick={() => updateStatus(incident, 'INVESTIGATING')} className="focus-ring rounded-xl border border-sky-100/20 px-3 py-2 text-sm disabled:opacity-60">{t('markInvestigating')}</button>}
-                {incident.status !== 'RESOLVED' && <button disabled={busyId === incident.id} onClick={() => updateStatus(incident, 'RESOLVED')} className="focus-ring rounded-xl border border-emerald-300/40 px-3 py-2 text-sm text-emerald-100 disabled:opacity-60">{t('markResolved')}</button>}
-                {incident.status !== 'FALSE_POSITIVE' && <button disabled={busyId === incident.id} onClick={() => markFalsePositive(incident)} className="focus-ring rounded-xl border border-amber-300/40 px-3 py-2 text-sm text-amber-100 disabled:opacity-60">{t('markFalsePositive')}</button>}
+                <button onClick={() => edit(incident)} className="secondary-button px-3 py-2">{t('edit')}</button>
+                {incident.status !== 'INVESTIGATING' && <button disabled={busyId === incident.id} onClick={() => updateStatus(incident, 'INVESTIGATING')} className="secondary-button px-3 py-2">{t('markInvestigating')}</button>}
+                {incident.status !== 'RESOLVED' && <button disabled={busyId === incident.id} onClick={() => updateStatus(incident, 'RESOLVED')} className="secondary-button border-emerald-300/40 px-3 py-2 text-emerald-100 hover:bg-emerald-400/10">{t('markResolved')}</button>}
+                {incident.status !== 'FALSE_POSITIVE' && <button disabled={busyId === incident.id} onClick={() => markFalsePositive(incident)} className="secondary-button border-amber-300/40 px-3 py-2 text-amber-100 hover:bg-amber-400/10">{t('markFalsePositive')}</button>}
               </div>
             </article>
           ))}

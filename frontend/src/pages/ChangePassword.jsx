@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { KeyRound } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import LanguageToggle from '../components/LanguageToggle.jsx';
@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function ChangePassword() {
+  const reduceMotion = useReducedMotion();
   const { user, authReady, changePassword, logout } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -55,7 +56,7 @@ export default function ChangePassword() {
 
   return (
     <main className="grid min-h-screen place-items-center p-4">
-      <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="glass w-full max-w-md rounded-2xl p-6">
+      <motion.section initial={{ opacity: 0, y: reduceMotion ? 0 : 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduceMotion ? 0.01 : 0.2, ease: 'easeOut' }} className="glass w-full max-w-md rounded-[2rem] p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-white"><KeyRound /></div>
           <div className="min-w-0 flex-1">

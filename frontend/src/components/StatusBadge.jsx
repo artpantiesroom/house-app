@@ -31,7 +31,7 @@ const statusTones = {
 export default function StatusBadge({ children, status, tone = 'neutral' }) {
   const resolvedTone = statusTones[String(status || '').toUpperCase()] || tone;
   return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold leading-none ${toneStyles[resolvedTone] || toneStyles.neutral}`}>
+    <span className={`inline-flex min-h-6 items-center rounded-full border px-2.5 py-1 text-xs font-semibold leading-none shadow-sm transition ${toneStyles[resolvedTone] || toneStyles.neutral}`}>
       {children}
     </span>
   );

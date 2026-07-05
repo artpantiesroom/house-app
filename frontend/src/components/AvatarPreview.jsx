@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Camera, UserCircle } from 'lucide-react';
 import { residentsApi } from '../api/residentsApi.js';
 
-export default function AvatarPreview({ avatarUrl, name, sizeClass = 'h-20 w-20', roundedClass = 'rounded-2xl', interactive = false, label = 'Change' }) {
+export default function AvatarPreview({ avatarUrl, name, sizeClass = 'h-20 w-20', roundedClass = 'rounded-3xl', interactive = false, label = 'Change' }) {
   const [objectUrl, setObjectUrl] = useState('');
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function AvatarPreview({ avatarUrl, name, sizeClass = 'h-20 w-20'
   }, [avatarUrl]);
 
   return (
-    <div className={`group relative grid shrink-0 place-items-center overflow-hidden border border-sky-100/15 bg-sky-400/10 shadow-sm ${sizeClass} ${roundedClass}`}>
+    <div className={`group relative grid shrink-0 place-items-center overflow-hidden border border-sky-100/15 bg-sky-400/10 shadow-sm transition hover:border-primary/45 hover:shadow-glass ${sizeClass} ${roundedClass}`}>
       {objectUrl ? (
         <img src={objectUrl} alt="" className={`h-full w-full object-cover ${roundedClass}`} />
       ) : (

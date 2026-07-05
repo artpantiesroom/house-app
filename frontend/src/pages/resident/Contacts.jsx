@@ -61,7 +61,7 @@ export default function Contacts() {
   return (
     <section className="space-y-5">
       <PageHeader title={t('contactsTitle')} subtitle={t('contactsSubtitle')} />
-      <div className="glass rounded-2xl p-5">
+      <div className="glass rounded-3xl p-5">
         <h2 className="text-xl font-semibold">{buildingInfo.name}</h2>
         <p className="mt-2 text-sky-100/70">{buildingInfo.address}</p>
         <p className="mt-2 text-sm text-sky-100/65">{l.quietHours} {buildingInfo.quietHours}</p>
@@ -70,7 +70,7 @@ export default function Contacts() {
         {error && <ErrorState title={t('errorTitle')} description={error} onRetry={load} retryLabel={t('retry')} />}
         {!error && !contacts.length && <EmptyState icon={Building2} title={l.empty} description={t('emptyContactsDescription')} />}
         {contacts.map((contact) => (
-          <article key={contact.id} className="glass rounded-2xl p-4">
+          <article key={contact.id} className="glass rounded-3xl p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="font-semibold">{localized(contact, 'name', language)}</p>

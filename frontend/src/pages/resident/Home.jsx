@@ -83,7 +83,7 @@ export default function Home() {
     <section className="space-y-5">
       <PageHeader title={t('residentHomeTitle')} subtitle={t('residentHomeSubtitle')} />
       <p className="-mt-3 text-sm text-sky-100/62">{buildingInfo.name} · {buildingInfo.address}</p>
-      <div className="glass rounded-2xl p-5">
+      <div className="glass rounded-3xl p-5">
         <h2 className="text-xl font-semibold">{l.buildingInfo}</h2>
         <p className="mt-2 text-sky-100/70">{l.floors}: {buildingInfo.floors} · {l.quietHours} {buildingInfo.quietHours}</p>
         <p className="mt-3 text-sm text-sky-100/65">{buildingInfo.policyNote[language]}</p>
@@ -93,7 +93,7 @@ export default function Home() {
         {error && <ErrorState title={t('errorTitle')} description={error} onRetry={load} retryLabel={t('retry')} />}
         {!error && !announcements.length && <EmptyState icon={Bell} title={l.empty} description={t('emptyAnnouncementsDescription')} />}
         {announcements.map((announcement) => (
-          <article key={announcement.id} className="glass rounded-2xl p-4">
+          <article key={announcement.id} className="glass rounded-3xl p-4">
             <p className="font-semibold">{localized(announcement, 'title', language)}</p>
             <p className="mt-2 text-sm text-sky-100/75">{localized(announcement, 'body', language)}</p>
             <div className="mt-3 flex flex-wrap gap-2 text-xs">

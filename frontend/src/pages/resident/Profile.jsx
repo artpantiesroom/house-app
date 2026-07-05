@@ -140,7 +140,7 @@ export default function Profile() {
       {success && <div className="rounded-xl border border-emerald-300/40 bg-emerald-500/15 p-3 text-sm text-emerald-100">{success}</div>}
       {profile && (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-          <article className="glass rounded-2xl p-5">
+          <article className="glass rounded-3xl p-5">
             <div className="flex items-start gap-4">
               <AvatarPreview avatarUrl={profile.avatarUrl} name={profile.name} interactive label={profile.avatarUrl ? t('replaceAvatar') : t('uploadAvatar')} />
               <div className="min-w-0">
@@ -163,11 +163,11 @@ export default function Profile() {
                   {avatarBusy ? t('saving') : profile.avatarUrl ? t('replaceAvatar') : t('uploadAvatar')}
                   <input type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadAvatar} className="sr-only" />
                 </label>
-                {profile.avatarUrl && <button type="button" disabled={avatarBusy} onClick={removeAvatar} className="focus-ring rounded-xl border border-rose-300/40 px-3 py-2 text-sm text-rose-100 disabled:opacity-60">{t('removeAvatar')}</button>}
+                {profile.avatarUrl && <button type="button" disabled={avatarBusy} onClick={removeAvatar} className="danger-button px-3 py-2">{t('removeAvatar')}</button>}
               </div>
             </div>
           </article>
-          <form onSubmit={save} className="glass grid content-start gap-3 rounded-2xl p-5 md:grid-cols-2">
+          <form onSubmit={save} className="glass grid content-start gap-3 rounded-3xl p-5 md:grid-cols-2">
             <Field label={t('yourPhoneNumber')} error={errors.phone}><input value={form.phone} onChange={(e) => updateField('phone', e.target.value)} placeholder={UKRAINIAN_PHONE_PLACEHOLDER} inputMode="tel" className={inputClass(errors.phone)} /></Field>
             <Field label={t('language')}><select value={form.preferredLanguage} onChange={(e) => updateField('preferredLanguage', e.target.value)} className={inputClass()}><option value="uk">Українська</option><option value="en">English</option></select></Field>
             <Field label={t('emergencyContactPerson')} error={errors.emergencyContactName}><input value={form.emergencyContactName} onChange={(e) => updateField('emergencyContactName', e.target.value)} className={inputClass(errors.emergencyContactName)} /></Field>

@@ -122,17 +122,17 @@ export default function MyRequests() {
   return (
     <section className="space-y-5">
       <PageHeader title={t('myRequests')} subtitle={t('myRequestsSubtitle')} />
-      <form onSubmit={submit} className="glass space-y-3 rounded-2xl p-4">
-        <label className="block text-sm">{t('title')}<input value={form.title} maxLength={160} onChange={(event) => updateField('title', event.target.value)} className={`focus-ring mt-1 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${errors.title ? 'field-error border-rose-300' : 'border-sky-100/15'}`} />{errors.title && <span className="text-xs normal-case text-rose-200">{errors.title}</span>}</label>
-        <label className="block text-sm">{t('category')}<select value={form.category} onChange={(event) => updateField('category', event.target.value)} className={`focus-ring mt-1 w-full rounded-xl border bg-sky-950/80 px-3 py-2 ${errors.category ? 'field-error border-rose-300' : 'border-sky-100/15'}`}><option value="">{t('category')}</option>{requestCategories.map(([value, labelKey]) => <option key={value} value={value}>{t(labelKey)}</option>)}</select>{errors.category && <span className="text-xs normal-case text-rose-200">{errors.category}</span>}</label>
-        <label className="block text-sm">{t('details')}<textarea maxLength={3000} value={form.description} onChange={(event) => updateField('description', event.target.value)} className={`focus-ring mt-1 min-h-28 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${errors.description ? 'field-error border-rose-300' : 'border-sky-100/15'}`} />{errors.description && <span className="text-xs text-rose-200">{errors.description}</span>}</label>
+      <form onSubmit={submit} className="glass space-y-3 rounded-3xl p-4">
+        <label className="block text-sm">{t('title')}<input value={form.title} maxLength={160} onChange={(event) => updateField('title', event.target.value)} className={`field-control ${errors.title ? 'field-error border-rose-300' : ''}`} />{errors.title && <span className="text-xs normal-case text-rose-200">{errors.title}</span>}</label>
+        <label className="block text-sm">{t('category')}<select value={form.category} onChange={(event) => updateField('category', event.target.value)} className={`field-control ${errors.category ? 'field-error border-rose-300' : ''}`}><option value="">{t('category')}</option>{requestCategories.map(([value, labelKey]) => <option key={value} value={value}>{t(labelKey)}</option>)}</select>{errors.category && <span className="text-xs normal-case text-rose-200">{errors.category}</span>}</label>
+        <label className="block text-sm">{t('details')}<textarea maxLength={3000} value={form.description} onChange={(event) => updateField('description', event.target.value)} className={`field-control min-h-28 ${errors.description ? 'field-error border-rose-300' : ''}`} />{errors.description && <span className="text-xs text-rose-200">{errors.description}</span>}</label>
         {success && <p className="rounded-xl border border-emerald-300/40 bg-emerald-400/10 p-3 text-sm text-emerald-100">{success}</p>}
         {error && <ErrorState title={t('errorTitle')} description={error} />}
         <button disabled={saving} className="primary-button">{saving ? <LoadingSpinner label={t('sending')} /> : t('submitRequest')}</button>
       </form>
       <div className="grid gap-3">
         {requests.length ? requests.map((request) => (
-          <article key={request.id} className="glass rounded-2xl p-4">
+          <article key={request.id} className="glass rounded-3xl p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="font-semibold">{request.title}</p>

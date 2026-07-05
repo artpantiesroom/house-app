@@ -55,7 +55,7 @@ export default function AuditLog() {
     <section className="space-y-5">
       <PageHeader title={t('auditLogTitle')} subtitle={t('auditLogSubtitle')} />
 
-      <div className="glass grid gap-3 rounded-2xl p-4 md:grid-cols-6">
+      <div className="glass grid gap-3 rounded-3xl p-4 md:grid-cols-6">
         <Select label={t('auditAction')} value={filters.action} onChange={(value) => setFilters((current) => ({ ...current, action: value }))} options={auditActions} labelFor={(value) => t(`auditAction${value}`)} allLabel={t('allActions')} />
         <Select label={t('auditEntityType')} value={filters.entityType} onChange={(value) => setFilters((current) => ({ ...current, entityType: value }))} options={entityTypes} labelFor={(value) => t(`auditEntity${value}`)} allLabel={t('allEntities')} />
         <TextInput label={t('search')} value={filters.search} onChange={(value) => setFilters((current) => ({ ...current, search: value }))} />
@@ -69,7 +69,7 @@ export default function AuditLog() {
         <div className="grid gap-3">
           {!records.length && <EmptyState icon={FileClock} title={t('auditEmpty')} description={t('auditEmptyDescription')} />}
           {records.map((entry) => (
-            <article key={entry.id} className="glass rounded-2xl p-4">
+            <article key={entry.id} className="glass rounded-3xl p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-semibold">{entry.actorEmail || t('systemActor')} <span className="text-xs text-sky-100/55">{entry.actorRole || 'SYSTEM'}</span></p>

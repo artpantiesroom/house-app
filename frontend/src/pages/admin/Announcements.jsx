@@ -197,7 +197,7 @@ export default function Announcements() {
     <section className="space-y-5">
       <PageHeader title={t('announcementsTitle')} subtitle={t('announcementsSubtitle')} />
 
-      <form onSubmit={submit} className="glass space-y-4 rounded-2xl p-4">
+      <form onSubmit={submit} className="glass space-y-4 rounded-3xl p-4">
         <div className="grid gap-3 md:grid-cols-2">
           <TextInput label={l.titleUk} value={form.titleUk} onChange={(value) => updateField('titleUk', value)} required />
           <TextInput label={l.titleEn} value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
@@ -217,7 +217,7 @@ export default function Announcements() {
         </div>
       </form>
 
-      <div className="glass grid gap-3 rounded-2xl p-4 md:grid-cols-4">
+      <div className="glass grid gap-3 rounded-3xl p-4 md:grid-cols-4">
         <Select label={l.status} value={filters.status} onChange={(value) => setFilters((current) => ({ ...current, status: value }))} options={['', ...statusOptions]} labels={{ '': { uk: l.all, en: l.all }, ...statusLabels }} language={language} />
         <Select label={l.category} value={filters.category} onChange={(value) => setFilters((current) => ({ ...current, category: value }))} options={['', ...categoryOptions]} labels={{ '': { uk: l.all, en: l.all }, ...categoryLabels }} language={language} />
         <Select label={l.priority} value={filters.priority} onChange={(value) => setFilters((current) => ({ ...current, priority: value }))} options={['', ...priorityOptions]} labels={{ '': { uk: l.all, en: l.all }, ...priorityLabels }} language={language} />
@@ -231,7 +231,7 @@ export default function Announcements() {
         <div className="grid gap-3 md:grid-cols-2">
           {!announcements.length && <EmptyState icon={Bell} title={l.empty} description={t('emptyAnnouncementsDescription')} />}
           {announcements.map((announcement) => (
-            <article key={announcement.id} className="glass rounded-2xl p-4">
+            <article key={announcement.id} className="glass rounded-3xl p-4">
               <div className="mb-2 flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-semibold">{announcement.titleUk}</h2>
@@ -248,9 +248,9 @@ export default function Announcements() {
               <p className="mt-3 text-xs text-sky-100/55">{l.publishedAt}: {formatDateTime(announcement.publishedAt, language)}</p>
               <p className="text-xs text-sky-100/55">{l.expiresAt}: {formatDateTime(announcement.expiresAt, language)}</p>
               <div className="mt-4 flex flex-wrap gap-2">
-                <button onClick={() => edit(announcement)} className="focus-ring rounded-xl border border-sky-100/20 px-3 py-2 text-sm">{l.edit}</button>
-                {announcement.status !== 'PUBLISHED' && <button disabled={busyId === announcement.id} onClick={() => action(announcement.id, 'publish')} className="focus-ring rounded-xl border border-emerald-300/40 px-3 py-2 text-sm text-emerald-100 disabled:opacity-60">{l.publish}</button>}
-                {announcement.status !== 'ARCHIVED' && <button disabled={busyId === announcement.id} onClick={() => action(announcement.id, 'archive')} className="focus-ring rounded-xl border border-amber-300/40 px-3 py-2 text-sm text-amber-100 disabled:opacity-60">{busyId === announcement.id ? l.deleting : l.archive}</button>}
+                <button onClick={() => edit(announcement)} className="secondary-button px-3 py-2">{l.edit}</button>
+                {announcement.status !== 'PUBLISHED' && <button disabled={busyId === announcement.id} onClick={() => action(announcement.id, 'publish')} className="secondary-button border-emerald-300/40 px-3 py-2 text-emerald-100 hover:bg-emerald-400/10">{l.publish}</button>}
+                {announcement.status !== 'ARCHIVED' && <button disabled={busyId === announcement.id} onClick={() => action(announcement.id, 'archive')} className="secondary-button border-amber-300/40 px-3 py-2 text-amber-100 hover:bg-amber-400/10">{busyId === announcement.id ? l.deleting : l.archive}</button>}
               </div>
             </article>
           ))}

@@ -65,7 +65,7 @@ export default function MyPayments() {
   return (
     <section className="space-y-5">
       <PageHeader title={t('myPaymentsTitle')} subtitle={t('myPaymentsSubtitle')} />
-      <div className="glass grid gap-3 rounded-2xl p-4 md:grid-cols-5">
+      <div className="glass grid gap-3 rounded-3xl p-4 md:grid-cols-5">
         <FilterSelect label={t('status')} value={filters.status} onChange={(value) => setFilters((current) => ({ ...current, status: value }))} options={paymentStatuses} t={t} />
         <FilterSelect label={t('paymentType')} value={filters.type} onChange={(value) => setFilters((current) => ({ ...current, type: value }))} options={paymentTypes} t={t} />
         <TextInput label={t('periodYear')} value={filters.periodYear} onChange={(value) => setFilters((current) => ({ ...current, periodYear: value }))} />
@@ -75,7 +75,7 @@ export default function MyPayments() {
       {error && <ErrorState title={t('errorTitle')} description={error} onRetry={() => load(filters)} retryLabel={t('retry')} />}
       <div className="grid gap-3">
         {records.length ? records.map((payment) => (
-          <article key={payment.id} className="glass rounded-2xl p-4">
+          <article key={payment.id} className="glass rounded-3xl p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="font-semibold">{localized(payment, 'title', language)}</p>
