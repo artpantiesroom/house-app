@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AvatarPreview from '../../components/AvatarPreview.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
@@ -129,15 +130,15 @@ export default function Profile() {
     }
   };
 
-  if (loading) return <SkeletonCard rows={5} />;
+  if (loading) return <SkeletonCard variant="form" rows={6} />;
 
   return (
     <section className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold">{t('profileTitle')}</h1>
-        <button onClick={load} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-2 text-sm">{t('refresh')}</button>
+        <button onClick={load} className="secondary-button">{t('refresh')}</button>
       </div>
-      {error && <div className="rounded-xl border border-rose-300/40 bg-rose-500/15 p-3 text-sm text-rose-100">{error}</div>}
+      {error && <ErrorState title={t('errorTitle')} description={error} onRetry={load} retryLabel={t('retry')} />}
       {success && <div className="rounded-xl border border-emerald-300/40 bg-emerald-500/15 p-3 text-sm text-emerald-100">{success}</div>}
       {profile && (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
@@ -160,7 +161,7 @@ export default function Profile() {
               <p className="font-semibold text-sky-50">{t('avatar')}</p>
               <p className="mt-1">{t('avatarRules')}</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <label className="focus-ring cursor-pointer rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-white">
+                <label className="primary-button cursor-pointer text-sm">
                   {avatarBusy ? t('saving') : profile.avatarUrl ? t('replaceAvatar') : t('uploadAvatar')}
                   <input type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadAvatar} className="sr-only" />
                 </label>
@@ -173,7 +174,7 @@ export default function Profile() {
             <Field label={t('language')}><select value={form.preferredLanguage} onChange={(e) => updateField('preferredLanguage', e.target.value)} className={inputClass()}><option value="uk">Українська</option><option value="en">English</option></select></Field>
             <Field label={t('emergencyContactPerson')} error={errors.emergencyContactName}><input value={form.emergencyContactName} onChange={(e) => updateField('emergencyContactName', e.target.value)} className={inputClass(errors.emergencyContactName)} /></Field>
             <Field label={t('emergencyContactPhone')} error={errors.emergencyContactPhone}><input value={form.emergencyContactPhone} onChange={(e) => updateField('emergencyContactPhone', e.target.value)} placeholder={UKRAINIAN_PHONE_PLACEHOLDER} inputMode="tel" className={inputClass(errors.emergencyContactPhone)} /></Field>
-            <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60 md:col-span-2">{saving ? <LoadingSpinner label={t('saving')} /> : t('saveProfile')}</button>
+            <button disabled={saving} className="primary-button md:col-span-2">{saving ? <LoadingSpinner label={t('saving')} /> : t('saveProfile')}</button>
           </form>
         </div>
       )}
@@ -208,5 +209,5 @@ function Field({ label, error, children }) {
 }
 
 function inputClass(error) {
-  return `focus-ring mt-1 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${error ? 'field-error border-rose-300' : 'border-sky-100/15'}`;
+  return `field-control ${error ? 'field-error border-rose-300' : ''}`;
 }

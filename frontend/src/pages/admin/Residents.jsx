@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Users } from 'lucide-react';
 import AvatarPreview from '../../components/AvatarPreview.jsx';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
+import EmptyState from '../../components/EmptyState.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import PasswordField from '../../components/PasswordField.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
+import StatusBadge from '../../components/StatusBadge.jsx';
 import { apartmentsApi } from '../../api/apartmentsApi.js';
 import { residentsApi } from '../../api/residentsApi.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
@@ -203,15 +207,15 @@ export default function Residents() {
     setErrors((current) => ({ ...current, [field]: '' }));
   };
 
-  if (loading) return <SkeletonCard rows={6} />;
+  if (loading) return <SkeletonCard variant="list" count={5} />;
 
   return (
     <section className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold">{t('residentsTitle')}</h1>
-        <button onClick={load} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-2 text-sm">{t('refresh')}</button>
+        <button onClick={load} className="secondary-button">{t('refresh')}</button>
       </div>
-      {error && <div className="rounded-xl border border-rose-300/40 bg-rose-500/15 p-3 text-sm text-rose-100">{error}</div>}
+      {error && <ErrorState title={t('errorTitle')} description={error} onRetry={load} retryLabel={t('retry')} />}
       {success && <div className="rounded-xl border border-emerald-300/40 bg-emerald-500/15 p-3 text-sm text-emerald-100">{success}</div>}
       <form onSubmit={save} className="glass grid gap-3 rounded-2xl p-4 md:grid-cols-2 xl:grid-cols-4">
         <Field label={t('name')} error={errors.name}><input value={form.name} onChange={(e) => updateField('name', e.target.value)} className={inputClass(errors.name)} /></Field>
@@ -238,12 +242,12 @@ export default function Residents() {
           {editingId ? t('avatarManageExistingResident') : t('avatarAvailableAfterCreate')}
         </div>
         <div className="flex flex-wrap gap-2 md:col-span-2 xl:col-span-4">
-          <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60">{saving ? <LoadingSpinner label={t('saving')} /> : editingId ? t('saveResident') : t('addResident')}</button>
-          {editingId && <button type="button" onClick={() => { setEditingId(''); setForm(emptyForm); setErrors({}); }} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-3 text-sm">{t('cancel')}</button>}
+          <button disabled={saving} className="primary-button">{saving ? <LoadingSpinner label={t('saving')} /> : editingId ? t('saveResident') : t('addResident')}</button>
+          {editingId && <button type="button" onClick={() => { setEditingId(''); setForm(emptyForm); setErrors({}); }} className="secondary-button">{t('cancel')}</button>}
         </div>
       </form>
       {!residents.length ? (
-        <div className="glass rounded-2xl p-6 text-sky-100/75">{t('noResidents')}</div>
+        <EmptyState icon={Users} title={t('noResidents')} description={t('emptyResidentsDescription')} />
       ) : (
         <div className="grid gap-3">
           {residents.map((resident) => (
@@ -256,8 +260,8 @@ export default function Residents() {
                     <p className="break-words text-sm text-sky-100/70">{resident.email} · {resident.phone || t('notProvided')}</p>
                     <p className="text-sm text-sky-100/70">{resident.apartmentNumber ? `${t('sectionLabel')} ${resident.buildingSection}, ${t('apartmentShort')} ${resident.apartmentNumber}, ${t('floorLabel')} ${resident.floor}` : t('apartmentNotAssigned')} <DataClassificationBadge level="Confidential" /></p>
                     <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                      <span className={`rounded-full px-3 py-1 ${resident.enabled ? 'bg-emerald-400/15 text-emerald-100' : 'bg-rose-400/15 text-rose-100'}`}>{resident.enabled ? t('active') : t('disabled')}</span>
-                      <span className={`rounded-full px-3 py-1 ${resident.mustChangePassword ? 'bg-amber-400/15 text-amber-100' : 'bg-sky-400/15 text-sky-100'}`}>{resident.mustChangePassword ? t('mustChangePassword') : t('passwordUpdated')}</span>
+                      <StatusBadge status={resident.enabled ? 'ACTIVE' : 'DISABLED'}>{resident.enabled ? t('active') : t('disabled')}</StatusBadge>
+                      <StatusBadge tone={resident.mustChangePassword ? 'warning' : 'neutral'}>{resident.mustChangePassword ? t('mustChangePassword') : t('passwordUpdated')}</StatusBadge>
                     </div>
                   </div>
                 </div>
@@ -290,7 +294,7 @@ function Field({ label, error, wide = false, children }) {
 }
 
 function inputClass(error) {
-  return `focus-ring mt-1 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${error ? 'field-error border-rose-300' : 'border-sky-100/15'}`;
+  return `field-control ${error ? 'field-error border-rose-300' : ''}`;
 }
 
 function formatApartmentOption(apartment, t) {

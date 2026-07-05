@@ -89,7 +89,7 @@ export default function Login() {
           </label>
           {message && <p className="rounded-xl border border-sky-100/10 bg-sky-400/10 p-3 text-sm text-sky-100">{message}</p>}
           {errors.form && <p className="field-error rounded-xl border border-rose-300/40 bg-rose-400/10 p-3 text-sm text-rose-100">{errors.form}</p>}
-          <button disabled={loading} className="focus-ring flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 font-semibold text-white transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70">
+          <button disabled={loading} className="primary-button flex w-full items-center justify-center disabled:cursor-not-allowed">
             {loading ? <LoadingSpinner label={t('signingIn')} /> : t('signIn')}
           </button>
         </form>

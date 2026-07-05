@@ -6,6 +6,10 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -77,6 +81,8 @@ select,
 textarea {
   color: #f7fcfd;
   caret-color: #56b0b8;
+  border-radius: 0.75rem;
+  min-height: 44px;
 }
 
 input::placeholder,
@@ -90,15 +96,26 @@ select option {
 }
 
 .glass {
+  position: relative;
   border: 1px solid rgba(213, 236, 239, 0.18);
   background: rgba(16, 40, 45, 0.72);
   backdrop-filter: blur(20px);
   box-shadow: 0 22px 58px rgba(5, 24, 28, 0.24);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease,
+    background-color 180ms ease;
 }
 
 .glass:hover {
   border-color: rgba(86, 176, 184, 0.34);
   box-shadow: 0 24px 64px rgba(5, 24, 28, 0.28);
+}
+
+article.glass:hover,
+.glass[role="button"]:hover {
+  transform: translateY(-1px);
 }
 
 .focus-ring {
@@ -107,6 +124,39 @@ select option {
 
 .field-error {
   animation: shake 0.26s ease-in-out;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(16, 40, 45, 0.45);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(86, 176, 184, 0.48);
+  border: 2px solid rgba(16, 40, 45, 0.45);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(86, 176, 184, 0.72);
+}
+
+@layer components {
+  .field-control {
+    @apply focus-ring mt-1 min-h-11 w-full rounded-xl border border-sky-100/15 bg-sky-950/55 px-3 py-2 text-sky-50 shadow-sm hover:border-sky-200/35 disabled:opacity-60;
+  }
+
+  .secondary-button {
+    @apply focus-ring rounded-xl border border-sky-100/20 px-4 py-3 text-sm font-semibold text-sky-100 hover:border-primary hover:bg-sky-400/10 hover:text-sky-50 disabled:opacity-60;
+  }
+
+  .primary-button {
+    @apply focus-ring rounded-xl bg-primary px-4 py-3 font-semibold text-white shadow-glass hover:bg-primaryHover disabled:opacity-60;
+  }
 }
 
 @layer base {

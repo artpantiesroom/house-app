@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { FileClock } from 'lucide-react';
 import { auditApi } from '../../api/auditApi.js';
+import EmptyState from '../../components/EmptyState.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { formatDateTime } from '../../utils/date.js';
@@ -57,13 +60,13 @@ export default function AuditLog() {
         <TextInput label={t('search')} value={filters.search} onChange={(value) => setFilters((current) => ({ ...current, search: value }))} />
         <TextInput label={t('dateFrom')} type="date" value={filters.from} onChange={(value) => setFilters((current) => ({ ...current, from: value }))} />
         <TextInput label={t('dateTo')} type="date" value={filters.to} onChange={(value) => setFilters((current) => ({ ...current, to: value }))} />
-        <div className="flex items-end"><button onClick={() => load(filters)} className="focus-ring h-10 rounded-xl bg-primary px-4 text-sm font-semibold">{t('applyFilters')}</button></div>
+        <div className="flex items-end"><button onClick={() => load(filters)} className="primary-button w-full text-sm">{t('applyFilters')}</button></div>
       </div>
 
-      {error && <p className="rounded-xl border border-rose-300/40 bg-rose-950/40 p-3 text-sm text-rose-100">{error}</p>}
-      {loading ? <SkeletonCard rows={6} /> : (
+      {error && <ErrorState title={t('errorTitle')} description={error} onRetry={() => load(filters)} retryLabel={t('retry')} />}
+      {loading ? <SkeletonCard variant="list" count={5} /> : (
         <div className="grid gap-3">
-          {!records.length && <div className="glass rounded-2xl p-5 text-sky-100/70">{t('auditEmpty')}</div>}
+          {!records.length && <EmptyState icon={FileClock} title={t('auditEmpty')} description={t('auditEmptyDescription')} />}
           {records.map((entry) => (
             <article key={entry.id} className="glass rounded-2xl p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -85,11 +88,11 @@ export default function AuditLog() {
 }
 
 function Select({ label, value, onChange, options, labelFor, allLabel }) {
-  return <label className="block text-sm">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/70 px-3"><option value="">{allLabel}</option>{options.map((option) => <option key={option} value={option}>{labelFor(option)}</option>)}</select></label>;
+  return <label className="block text-sm">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="field-control"><option value="">{allLabel}</option>{options.map((option) => <option key={option} value={option}>{labelFor(option)}</option>)}</select></label>;
 }
 
 function TextInput({ label, value, onChange, type = 'text' }) {
-  return <label className="block text-sm">{label}<input type={type} value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/70 px-3" /></label>;
+  return <label className="block text-sm">{label}<input type={type} value={value} onChange={(event) => onChange(event.target.value)} className="field-control" /></label>;
 }
 
 function formatJson(value) {

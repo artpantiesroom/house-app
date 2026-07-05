@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Building2 } from 'lucide-react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
+import EmptyState from '../../components/EmptyState.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { contactsApi } from '../../api/contactsApi.js';
@@ -198,18 +201,18 @@ export default function Contacts() {
           <TextInput label={l.sortOrder} type="number" value={form.sortOrder} onChange={(value) => updateField('sortOrder', value)} />
           <label className="flex items-center gap-3 pt-7 text-sm"><input type="checkbox" checked={form.active} onChange={(event) => updateField('active', event.target.checked)} className="h-4 w-4 rounded border-sky-100/20 bg-sky-950/70" />{l.active}</label>
         </div>
-        {error && <p className="rounded-xl border border-rose-300/40 bg-rose-950/40 px-3 py-2 text-sm text-rose-100">{error}</p>}
+        {error && <ErrorState title={t('errorTitle')} description={error} />}
         <div className="flex flex-wrap gap-2">
-          <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60">
+          <button disabled={saving} className="primary-button">
             {saving ? <LoadingSpinner label={t('saving')} /> : editingId ? l.save : l.create}
           </button>
-          {editingId && <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-3">{l.cancel}</button>}
+          {editingId && <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} className="secondary-button">{l.cancel}</button>}
         </div>
       </form>
 
-      {loading ? <SkeletonCard rows={6} /> : (
+      {loading ? <SkeletonCard variant="list" count={4} /> : (
         <div className="grid gap-3 md:grid-cols-2">
-          {!contacts.length && <p className="glass rounded-2xl p-4 text-sky-100/70">{l.empty}</p>}
+          {!contacts.length && <EmptyState icon={Building2} title={l.empty} description={t('emptyContactsDescription')} />}
           {contacts.map((contact) => (
             <article key={contact.id} className={`glass rounded-2xl p-4 ${contact.active ? '' : 'opacity-60'}`}>
               <div className="flex items-start justify-between gap-3">
@@ -239,7 +242,7 @@ export default function Contacts() {
 }
 
 function TextInput({ label, value, onChange, type = 'text', placeholder = '', required = false }) {
-  return <label className="block text-sm">{label}<input required={required} type={type} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/50 px-3" /></label>;
+  return <label className="block text-sm">{label}<input required={required} type={type} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className="field-control" /></label>;
 }
 
 function localized(item, field, language) {

@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Building2 } from 'lucide-react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
+import EmptyState from '../../components/EmptyState.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { contactsApi } from '../../api/contactsApi.js';
 import { buildingInfo } from '../../config/buildingInfo.js';
@@ -46,7 +49,7 @@ export default function Contacts() {
     };
   }, [l.loadError]);
 
-  if (loading) return <SkeletonCard rows={5} />;
+  if (loading) return <SkeletonCard variant="list" count={3} />;
 
   return (
     <section className="space-y-5">
@@ -57,8 +60,8 @@ export default function Contacts() {
         <p className="mt-2 text-sm text-sky-100/65">{l.quietHours} {buildingInfo.quietHours}</p>
       </div>
       <div className="grid gap-3">
-        {error && <p className="glass rounded-2xl border border-rose-300/40 p-4 text-rose-100">{error}</p>}
-        {!error && !contacts.length && <p className="glass rounded-2xl p-4 text-sky-100/70">{l.empty}</p>}
+        {error && <ErrorState title={t('errorTitle')} description={error} retryLabel={t('retry')} />}
+        {!error && !contacts.length && <EmptyState icon={Building2} title={l.empty} description={t('emptyContactsDescription')} />}
         {contacts.map((contact) => (
           <article key={contact.id} className="glass rounded-2xl p-4">
             <div className="flex items-start justify-between gap-3">

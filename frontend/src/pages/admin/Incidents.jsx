@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { ShieldAlert } from 'lucide-react';
 import { incidentsApi } from '../../api/incidentsApi.js';
+import EmptyState from '../../components/EmptyState.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
@@ -133,11 +136,11 @@ export default function Incidents() {
           <TextArea label={t('details')} value={form.description} onChange={(value) => setForm((current) => ({ ...current, description: value }))} required />
           <TextArea label={t('resolutionNotes')} value={form.resolutionNotes} onChange={(value) => setForm((current) => ({ ...current, resolutionNotes: value }))} />
         </div>
-        {error && <p className="rounded-xl border border-rose-300/40 bg-rose-950/40 p-3 text-sm text-rose-100">{error}</p>}
+        {error && <ErrorState title={t('errorTitle')} description={error} />}
         {success && <p className="rounded-xl border border-emerald-300/40 bg-emerald-400/10 p-3 text-sm text-emerald-100">{success}</p>}
         <div className="flex flex-wrap gap-2">
-          <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60">{saving ? <LoadingSpinner label={t('saving')} /> : editingId ? t('updateIncident') : t('createIncident')}</button>
-          {editingId && <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-3">{t('cancel')}</button>}
+          <button disabled={saving} className="primary-button">{saving ? <LoadingSpinner label={t('saving')} /> : editingId ? t('updateIncident') : t('createIncident')}</button>
+          {editingId && <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} className="secondary-button">{t('cancel')}</button>}
         </div>
       </form>
 
@@ -146,12 +149,12 @@ export default function Incidents() {
         <FilterSelect label={t('status')} value={filters.status} onChange={(value) => setFilters((current) => ({ ...current, status: value }))} options={statuses} labelFor={(value) => t(`incidentStatus${value}`)} allLabel={t('allStatuses')} />
         <FilterSelect label={t('category')} value={filters.category} onChange={(value) => setFilters((current) => ({ ...current, category: value }))} options={categories} labelFor={(value) => t(`incidentCategory${value}`)} allLabel={t('allCategories')} />
         <TextInput label={t('search')} value={filters.search} onChange={(value) => setFilters((current) => ({ ...current, search: value }))} />
-        <div className="flex items-end"><button onClick={() => load(filters)} className="focus-ring h-10 rounded-xl bg-primary px-4 text-sm font-semibold">{t('applyFilters')}</button></div>
+        <div className="flex items-end"><button onClick={() => load(filters)} className="primary-button w-full text-sm">{t('applyFilters')}</button></div>
       </div>
 
-      {loading ? <SkeletonCard rows={6} /> : (
+      {loading ? <SkeletonCard variant="list" count={5} /> : (
         <div className="grid gap-3">
-          {!records.length && <div className="glass rounded-2xl p-5 text-sky-100/70">{t('incidentsEmpty')}</div>}
+          {!records.length && <EmptyState icon={ShieldAlert} title={t('incidentsEmpty')} description={t('incidentsEmptyDescription')} />}
           {records.map((incident) => (
             <article key={incident.id} className="glass rounded-2xl p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -200,19 +203,19 @@ function toPayload(form) {
 }
 
 function Select({ label, value, onChange, options, labelFor }) {
-  return <label className="block text-sm">{label}<select required value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/70 px-3">{options.map((option) => <option key={option} value={option}>{labelFor(option)}</option>)}</select></label>;
+  return <label className="block text-sm">{label}<select required value={value} onChange={(event) => onChange(event.target.value)} className="field-control">{options.map((option) => <option key={option} value={option}>{labelFor(option)}</option>)}</select></label>;
 }
 
 function FilterSelect({ label, value, onChange, options, labelFor, allLabel }) {
-  return <label className="block text-sm">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/70 px-3"><option value="">{allLabel}</option>{options.map((option) => <option key={option} value={option}>{labelFor(option)}</option>)}</select></label>;
+  return <label className="block text-sm">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="field-control"><option value="">{allLabel}</option>{options.map((option) => <option key={option} value={option}>{labelFor(option)}</option>)}</select></label>;
 }
 
 function TextInput({ label, value, onChange, type = 'text', required = false, maxLength }) {
-  return <label className="block text-sm">{label}<input required={required} maxLength={maxLength} type={type} value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/70 px-3" /></label>;
+  return <label className="block text-sm">{label}<input required={required} maxLength={maxLength} type={type} value={value} onChange={(event) => onChange(event.target.value)} className="field-control" /></label>;
 }
 
 function TextArea({ label, value, onChange, required = false }) {
-  return <label className="block text-sm md:col-span-3">{label}<textarea required={required} maxLength={3000} value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 min-h-24 w-full rounded-xl border border-sky-100/15 bg-sky-950/70 px-3 py-2" /></label>;
+  return <label className="block text-sm md:col-span-3">{label}<textarea required={required} maxLength={3000} value={value} onChange={(event) => onChange(event.target.value)} className="field-control min-h-24" /></label>;
 }
 
 function severityTone(severity) {

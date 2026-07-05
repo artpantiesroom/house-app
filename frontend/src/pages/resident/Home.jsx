@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Bell } from 'lucide-react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
+import EmptyState from '../../components/EmptyState.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { announcementsApi } from '../../api/announcementsApi.js';
 import { buildingInfo } from '../../config/buildingInfo.js';
@@ -67,7 +70,7 @@ export default function Home() {
     };
   }, [l.loadError]);
 
-  if (loading) return <div className="grid gap-4"><SkeletonCard /><SkeletonCard rows={4} /></div>;
+  if (loading) return <div className="grid gap-4"><SkeletonCard /><SkeletonCard variant="list" count={2} /></div>;
 
   return (
     <section className="space-y-5">
@@ -79,8 +82,8 @@ export default function Home() {
       </div>
       <div className="grid gap-3">
         <h2 className="text-xl font-semibold">{l.announcements} <DataClassificationBadge level="Public" /></h2>
-        {error && <p className="glass rounded-2xl border border-rose-300/40 p-4 text-rose-100">{error}</p>}
-        {!error && !announcements.length && <p className="glass rounded-2xl p-4 text-sky-100/70">{l.empty}</p>}
+        {error && <ErrorState title={t('errorTitle')} description={error} retryLabel={t('retry')} />}
+        {!error && !announcements.length && <EmptyState icon={Bell} title={l.empty} description={t('emptyAnnouncementsDescription')} />}
         {announcements.map((announcement) => (
           <article key={announcement.id} className="glass rounded-2xl p-4">
             <p className="font-semibold">{localized(announcement, 'title', language)}</p>

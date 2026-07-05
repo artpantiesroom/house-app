@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import { ClipboardList } from 'lucide-react';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
+import EmptyState from '../../components/EmptyState.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import { maintenanceApi } from '../../api/maintenanceApi.js';
@@ -113,7 +116,7 @@ export default function MyRequests() {
     setError('');
   };
 
-  if (loading) return <SkeletonCard rows={6} />;
+  if (loading) return <SkeletonCard variant="list" count={4} />;
 
   return (
     <section className="space-y-5">
@@ -123,8 +126,8 @@ export default function MyRequests() {
         <label className="block text-sm">{t('category')}<select value={form.category} onChange={(event) => updateField('category', event.target.value)} className={`focus-ring mt-1 w-full rounded-xl border bg-sky-950/80 px-3 py-2 ${errors.category ? 'field-error border-rose-300' : 'border-sky-100/15'}`}><option value="">{t('category')}</option>{requestCategories.map(([value, labelKey]) => <option key={value} value={value}>{t(labelKey)}</option>)}</select>{errors.category && <span className="text-xs normal-case text-rose-200">{errors.category}</span>}</label>
         <label className="block text-sm">{t('details')}<textarea maxLength={3000} value={form.description} onChange={(event) => updateField('description', event.target.value)} className={`focus-ring mt-1 min-h-28 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${errors.description ? 'field-error border-rose-300' : 'border-sky-100/15'}`} />{errors.description && <span className="text-xs text-rose-200">{errors.description}</span>}</label>
         {success && <p className="rounded-xl border border-emerald-300/40 bg-emerald-400/10 p-3 text-sm text-emerald-100">{success}</p>}
-        {error && <p className="rounded-xl border border-rose-300/40 bg-rose-950/40 p-3 text-sm text-rose-100">{error}</p>}
-        <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60">{saving ? <LoadingSpinner label={t('sending')} /> : t('submitRequest')}</button>
+        {error && <ErrorState title={t('errorTitle')} description={error} />}
+        <button disabled={saving} className="primary-button">{saving ? <LoadingSpinner label={t('sending')} /> : t('submitRequest')}</button>
       </form>
       <div className="grid gap-3">
         {requests.length ? requests.map((request) => (
@@ -143,7 +146,7 @@ export default function MyRequests() {
             {request.adminResponse && <p className="mt-3 rounded-xl border border-emerald-300/30 bg-emerald-400/10 p-3 text-sm text-emerald-50"><span className="font-semibold">{t('adminResponse')}:</span> {request.adminResponse}</p>}
             <p className="mt-3 text-xs text-sky-100/55">{t('createdAt')}: {formatDateTime(request.createdAt, language)} · {t('updatedAt')}: {formatDateTime(request.updatedAt, language)}</p>
           </article>
-        )) : <div className="glass rounded-2xl p-5 text-sky-100/70">{t('noRequests')}</div>}
+        )) : <EmptyState icon={ClipboardList} title={t('noRequests')} description={t('noResidentRequestsDescription')} />}
       </div>
     </section>
   );

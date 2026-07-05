@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Bell } from 'lucide-react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
+import EmptyState from '../../components/EmptyState.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { announcementsApi } from '../../api/announcementsApi.js';
@@ -204,12 +207,12 @@ export default function Announcements() {
           <Select label={l.status} value={form.status} onChange={(value) => updateField('status', value)} options={statusOptions} labels={statusLabels} language={language} />
           <TextInput label={l.expiresAt} type="datetime-local" value={form.expiresAt} onChange={(value) => updateField('expiresAt', value)} />
         </div>
-        {error && <p className="rounded-xl border border-rose-300/40 bg-rose-950/40 px-3 py-2 text-sm text-rose-100">{error}</p>}
+        {error && <ErrorState title={t('errorTitle')} description={error} />}
         <div className="flex flex-wrap gap-2">
-          <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60">
+          <button disabled={saving} className="primary-button">
             {saving ? <LoadingSpinner label={t('saving')} /> : editingId ? l.save : l.create}
           </button>
-          {editingId && <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-3">{l.cancel}</button>}
+          {editingId && <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} className="secondary-button">{l.cancel}</button>}
         </div>
       </form>
 
@@ -219,13 +222,13 @@ export default function Announcements() {
         <Select label={l.priority} value={filters.priority} onChange={(value) => setFilters((current) => ({ ...current, priority: value }))} options={['', ...priorityOptions]} labels={{ '': { uk: l.all, en: l.all }, ...priorityLabels }} language={language} />
         <div className="flex items-end gap-2">
           <TextInput label={t('search')} value={filters.search} onChange={(value) => setFilters((current) => ({ ...current, search: value }))} />
-          <button onClick={load} className="focus-ring h-10 rounded-xl border border-sky-100/20 px-3 text-sm">{t('refresh')}</button>
+          <button onClick={load} className="secondary-button px-3 py-2">{t('refresh')}</button>
         </div>
       </div>
 
-      {loading ? <SkeletonCard rows={6} /> : (
+      {loading ? <SkeletonCard variant="list" count={4} /> : (
         <div className="grid gap-3 md:grid-cols-2">
-          {!announcements.length && <p className="glass rounded-2xl p-4 text-sky-100/70">{l.empty}</p>}
+          {!announcements.length && <EmptyState icon={Bell} title={l.empty} description={t('emptyAnnouncementsDescription')} />}
           {announcements.map((announcement) => (
             <article key={announcement.id} className="glass rounded-2xl p-4">
               <div className="mb-2 flex items-start justify-between gap-3">
@@ -257,15 +260,15 @@ export default function Announcements() {
 }
 
 function TextInput({ label, value, onChange, type = 'text', required = false }) {
-  return <label className="block text-sm">{label}<input required={required} type={type} value={value} onChange={(e) => onChange(e.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/50 px-3" /></label>;
+  return <label className="block text-sm">{label}<input required={required} type={type} value={value} onChange={(e) => onChange(e.target.value)} className="field-control" /></label>;
 }
 
 function TextArea({ label, value, onChange, required = false }) {
-  return <label className="block text-sm">{label}<textarea required={required} value={value} maxLength={5000} onChange={(e) => onChange(e.target.value)} className="focus-ring mt-1 min-h-28 w-full rounded-xl border border-sky-100/15 bg-sky-950/50 px-3 py-2" /></label>;
+  return <label className="block text-sm">{label}<textarea required={required} value={value} maxLength={5000} onChange={(e) => onChange(e.target.value)} className="field-control min-h-28" /></label>;
 }
 
 function Select({ label, value, onChange, options, labels: optionLabels, language }) {
-  return <label className="block text-sm">{label}<select value={value} onChange={(e) => onChange(e.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/80 px-3">{options.map((option) => <option key={option} value={option}>{optionLabels[option]?.[language] || option}</option>)}</select></label>;
+  return <label className="block text-sm">{label}<select value={value} onChange={(e) => onChange(e.target.value)} className="field-control">{options.map((option) => <option key={option} value={option}>{optionLabels[option]?.[language] || option}</option>)}</select></label>;
 }
 
 function Pill({ children }) {

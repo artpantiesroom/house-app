@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Activity, AlertTriangle, CreditCard, Users } from 'lucide-react';
+import { Activity, AlertTriangle, CreditCard, FileClock, Users } from 'lucide-react';
 import { auditApi } from '../../api/auditApi.js';
 import { incidentsApi } from '../../api/incidentsApi.js';
 import { maintenanceApi } from '../../api/maintenanceApi.js';
 import { paymentsApi } from '../../api/paymentsApi.js';
 import { residentsApi } from '../../api/residentsApi.js';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
+import EmptyState from '../../components/EmptyState.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { getPaymentStatusLabel } from '../resident/MyPayments.jsx';
@@ -58,7 +60,7 @@ export default function Dashboard() {
   }, [summary]);
 
   if (loading) {
-    return <div className="grid gap-4 md:grid-cols-2"><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>;
+    return <div className="space-y-4"><SkeletonCard variant="kpi" count={4} /><SkeletonCard variant="list" count={3} /></div>;
   }
 
   return (
@@ -68,10 +70,10 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold">{t('adminDashboardTitle')}</h1>
           <p className="mt-2 max-w-3xl text-sky-100/70">{t('dashboardSubtitle')}</p>
         </div>
-        <button onClick={load} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-2 text-sm">{t('refresh')}</button>
+        <button onClick={load} className="secondary-button">{t('refresh')}</button>
       </div>
 
-      {error && <p className="rounded-xl border border-rose-300/40 bg-rose-950/40 p-3 text-sm text-rose-100">{error}</p>}
+      {error && <ErrorState title={t('errorTitle')} description={error} onRetry={load} retryLabel={t('retry')} />}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
@@ -80,7 +82,7 @@ export default function Dashboard() {
           [t('navPaymentsOverview'), counts.unpaidPayments, CreditCard],
           [t('navSecurityIncidents'), counts.activeIncidents, AlertTriangle],
         ].map(([label, value, Icon]) => (
-          <div key={label} className="glass rounded-2xl p-5 transition hover:scale-[1.01]">
+          <div key={label} className="glass flex min-h-40 flex-col justify-between rounded-2xl p-5">
             <Icon className="mb-4 text-accent" />
             <p className="text-sm text-sky-100/65">{label}</p>
             <p className="text-3xl font-bold">{value}</p>
@@ -92,7 +94,7 @@ export default function Dashboard() {
         <div className="glass rounded-2xl p-5">
           <h2 className="mb-4 text-xl font-semibold">{t('latestIncidents')}</h2>
           <div className="space-y-3">
-            {!summary.incidents.length && <p className="rounded-xl bg-sky-400/10 p-3 text-sm text-sky-100/70">{t('noIncidents')}</p>}
+            {!summary.incidents.length && <EmptyState icon={AlertTriangle} title={t('noIncidents')} description={t('noIncidentsDescription')} />}
             {summary.incidents.slice(0, 3).map((incident) => (
               <div key={incident.id} className="rounded-xl bg-sky-400/10 p-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -110,7 +112,7 @@ export default function Dashboard() {
         <div className="glass rounded-2xl p-5">
           <h2 className="mb-4 text-xl font-semibold">{t('latestAudit')}</h2>
           <div className="space-y-3">
-            {!summary.auditRecords.length && <p className="rounded-xl bg-sky-400/10 p-3 text-sm text-sky-100/70">{t('auditEmpty')}</p>}
+            {!summary.auditRecords.length && <EmptyState icon={FileClock} title={t('auditEmpty')} description={t('auditEmptyDescription')} />}
             {summary.auditRecords.slice(0, 5).map((entry) => (
               <div key={entry.id} className="rounded-xl bg-sky-400/10 p-3">
                 <p className="font-semibold">{t(`auditAction${entry.action}`)}</p>
@@ -156,12 +158,13 @@ function CompactList({ title, emptyLabel, items, render }) {
     <div className="glass rounded-2xl p-5">
       <h2 className="mb-4 text-xl font-semibold">{title}</h2>
       <div className="space-y-3">
-        {!items.length && <p className="rounded-xl bg-sky-400/10 p-3 text-sm text-sky-100/70">{emptyLabel}</p>}
-        {items.map((item) => <div key={item.id} className="rounded-xl bg-sky-400/10 p-3">{render(item)}</div>)}
+        {!items.length && <EmptyState title={emptyLabel} description="" />}
+        {items.map((item) => <div key={item.id} className="rounded-xl border border-sky-100/10 bg-sky-400/10 p-3 transition hover:border-primary/50 hover:bg-sky-400/15">{render(item)}</div>)}
       </div>
     </div>
   );
 }
+
 
 function severityTone(severity) {
   if (severity === 'CRITICAL' || severity === 'HIGH') return 'danger';

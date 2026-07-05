@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { CreditCard } from 'lucide-react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
+import EmptyState from '../../components/EmptyState.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
@@ -150,7 +153,7 @@ export default function Payments() {
 
       <form onSubmit={submit} className="glass space-y-4 rounded-2xl p-4">
         <div className="grid gap-3 md:grid-cols-3">
-          <label className="block text-sm">{t('resident')}<select required value={form.residentProfileId} onChange={(event) => setForm((current) => ({ ...current, residentProfileId: event.target.value }))} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/80 px-3"><option value=""></option>{residents.map((resident) => <option key={resident.id} value={resident.id}>{resident.name} · {resident.apartmentNumber || t('apartmentNotAssigned')}</option>)}</select></label>
+          <label className="block text-sm">{t('resident')}<select required value={form.residentProfileId} onChange={(event) => setForm((current) => ({ ...current, residentProfileId: event.target.value }))} className="field-control"><option value=""></option>{residents.map((resident) => <option key={resident.id} value={resident.id}>{resident.name} · {resident.apartmentNumber || t('apartmentNotAssigned')}</option>)}</select></label>
           <TextInput label={t('amount')} value={form.amount} onChange={(value) => setForm((current) => ({ ...current, amount: value }))} required />
           <Select label={t('paymentType')} value={form.type} onChange={(value) => setForm((current) => ({ ...current, type: value }))} options={paymentTypes} t={t} />
           <Select label={t('status')} value={form.status} onChange={(value) => setForm((current) => ({ ...current, status: value }))} options={paymentStatuses} t={t} />
@@ -162,11 +165,11 @@ export default function Payments() {
           <TextArea label={t('descriptionUk')} value={form.descriptionUk} onChange={(value) => setForm((current) => ({ ...current, descriptionUk: value }))} />
           <TextArea label={t('descriptionEn')} value={form.descriptionEn} onChange={(value) => setForm((current) => ({ ...current, descriptionEn: value }))} />
         </div>
-        {error && <p className="rounded-xl border border-rose-300/40 bg-rose-950/40 p-3 text-sm text-rose-100">{error}</p>}
+        {error && <ErrorState title={t('errorTitle')} description={error} />}
         {success && <p className="rounded-xl border border-emerald-300/40 bg-emerald-400/10 p-3 text-sm text-emerald-100">{success}</p>}
         <div className="flex flex-wrap gap-2">
-          <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60">{saving ? <LoadingSpinner label={t('saving')} /> : editingId ? t('updatePayment') : t('createPayment')}</button>
-          {editingId && <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-3">{t('cancel')}</button>}
+          <button disabled={saving} className="primary-button">{saving ? <LoadingSpinner label={t('saving')} /> : editingId ? t('updatePayment') : t('createPayment')}</button>
+          {editingId && <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} className="secondary-button">{t('cancel')}</button>}
         </div>
       </form>
 
@@ -176,12 +179,12 @@ export default function Payments() {
         <TextInput label={t('search')} value={filters.search} onChange={(value) => setFilters((current) => ({ ...current, search: value }))} />
         <TextInput label={t('periodYear')} value={filters.periodYear} onChange={(value) => setFilters((current) => ({ ...current, periodYear: value }))} />
         <TextInput label={t('periodMonth')} value={filters.periodMonth} onChange={(value) => setFilters((current) => ({ ...current, periodMonth: value }))} />
-        <div className="flex items-end"><button onClick={() => load(filters)} className="focus-ring h-10 rounded-xl bg-primary px-4 text-sm font-semibold">{t('applyFilters')}</button></div>
+        <div className="flex items-end"><button onClick={() => load(filters)} className="primary-button w-full text-sm">{t('applyFilters')}</button></div>
       </div>
 
-      {loading ? <SkeletonCard rows={6} /> : (
+      {loading ? <SkeletonCard variant="list" count={5} /> : (
         <div className="grid gap-3">
-          {!records.length && <div className="glass rounded-2xl p-5 text-sky-100/70">{t('noPayments')}</div>}
+          {!records.length && <EmptyState icon={CreditCard} title={t('noPayments')} description={t('noPaymentsDescription')} />}
           {records.map((payment) => (
             <article key={payment.id} className="glass rounded-2xl p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -213,19 +216,19 @@ export default function Payments() {
 }
 
 function TextInput({ label, value, onChange, type = 'text', required = false }) {
-  return <label className="block text-sm">{label}<input required={required} type={type} value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/50 px-3" /></label>;
+  return <label className="block text-sm">{label}<input required={required} type={type} value={value} onChange={(event) => onChange(event.target.value)} className="field-control" /></label>;
 }
 
 function TextArea({ label, value, onChange }) {
-  return <label className="block text-sm">{label}<textarea maxLength={1000} value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 min-h-24 w-full rounded-xl border border-sky-100/15 bg-sky-950/50 px-3 py-2" /></label>;
+  return <label className="block text-sm">{label}<textarea maxLength={1000} value={value} onChange={(event) => onChange(event.target.value)} className="field-control min-h-24" /></label>;
 }
 
 function Select({ label, value, onChange, options, t }) {
-  return <label className="block text-sm">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/80 px-3">{options.map(([optionValue, labelKey]) => <option key={optionValue} value={optionValue}>{t(labelKey)}</option>)}</select></label>;
+  return <label className="block text-sm">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="field-control">{options.map(([optionValue, labelKey]) => <option key={optionValue} value={optionValue}>{t(labelKey)}</option>)}</select></label>;
 }
 
 function FilterSelect({ label, value, onChange, options, t }) {
-  return <label className="block text-sm">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/80 px-3"><option value="">{t('all')}</option>{options.map(([optionValue, labelKey]) => <option key={optionValue} value={optionValue}>{t(labelKey)}</option>)}</select></label>;
+  return <label className="block text-sm">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="field-control"><option value="">{t('all')}</option>{options.map(([optionValue, labelKey]) => <option key={optionValue} value={optionValue}>{t(labelKey)}</option>)}</select></label>;
 }
 
 function localized(item, field, language) {

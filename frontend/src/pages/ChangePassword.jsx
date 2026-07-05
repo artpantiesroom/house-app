@@ -83,10 +83,10 @@ export default function ChangePassword() {
           </div>
           {errors.form && <p className="field-error rounded-xl border border-rose-300/40 bg-rose-400/10 p-3 text-sm text-rose-100">{errors.form}</p>}
           <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-            <button disabled={saving} className="focus-ring flex items-center justify-center rounded-xl bg-primary px-4 py-3 font-semibold text-white transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70">
+            <button disabled={saving} className="primary-button flex items-center justify-center disabled:cursor-not-allowed">
               {saving ? <LoadingSpinner label={t('saving')} /> : t('changePasswordButton')}
             </button>
-            <button type="button" onClick={() => logout()} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-3 text-sm font-semibold text-sky-100">{t('logout')}</button>
+            <button type="button" onClick={() => logout()} className="secondary-button">{t('logout')}</button>
           </div>
         </form>
         <FooterSecurityBadge />

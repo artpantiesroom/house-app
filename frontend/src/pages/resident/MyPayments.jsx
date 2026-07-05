@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { CreditCard } from 'lucide-react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
+import EmptyState from '../../components/EmptyState.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import { paymentsApi } from '../../api/paymentsApi.js';
@@ -56,7 +59,7 @@ export default function MyPayments() {
     load();
   }, []);
 
-  if (loading) return <SkeletonCard rows={5} />;
+  if (loading) return <SkeletonCard variant="list" count={3} />;
 
   return (
     <section className="space-y-5">
@@ -66,9 +69,9 @@ export default function MyPayments() {
         <FilterSelect label={t('paymentType')} value={filters.type} onChange={(value) => setFilters((current) => ({ ...current, type: value }))} options={paymentTypes} t={t} />
         <TextInput label={t('periodYear')} value={filters.periodYear} onChange={(value) => setFilters((current) => ({ ...current, periodYear: value }))} />
         <TextInput label={t('periodMonth')} value={filters.periodMonth} onChange={(value) => setFilters((current) => ({ ...current, periodMonth: value }))} />
-        <div className="flex items-end"><button onClick={() => load(filters)} className="focus-ring h-10 rounded-xl bg-primary px-4 text-sm font-semibold">{t('applyFilters')}</button></div>
+        <div className="flex items-end"><button onClick={() => load(filters)} className="primary-button w-full text-sm">{t('applyFilters')}</button></div>
       </div>
-      {error && <p className="rounded-xl border border-rose-300/40 bg-rose-950/40 p-3 text-sm text-rose-100">{error}</p>}
+      {error && <ErrorState title={t('errorTitle')} description={error} onRetry={() => load(filters)} retryLabel={t('retry')} />}
       <div className="grid gap-3">
         {records.length ? records.map((payment) => (
           <article key={payment.id} className="glass rounded-2xl p-4">
@@ -88,18 +91,18 @@ export default function MyPayments() {
             </div>
             <p className="mt-3 text-xs text-sky-100/55">{t('dueDate')}: {formatDate(payment.dueDate, language)}{payment.paidAt ? ` · ${t('paidAt')}: ${formatDate(payment.paidAt, language)}` : ''}</p>
           </article>
-        )) : <div className="glass rounded-2xl p-5 text-sky-100/70">{t('noPayments')}</div>}
+        )) : <EmptyState icon={CreditCard} title={t('noPayments')} description={t('noPaymentsDescription')} />}
       </div>
     </section>
   );
 }
 
 function FilterSelect({ label, value, onChange, options, t }) {
-  return <label className="block text-sm">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/80 px-3"><option value="">{t('all')}</option>{options.map(([optionValue, labelKey]) => <option key={optionValue} value={optionValue}>{t(labelKey)}</option>)}</select></label>;
+  return <label className="block text-sm">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="field-control"><option value="">{t('all')}</option>{options.map(([optionValue, labelKey]) => <option key={optionValue} value={optionValue}>{t(labelKey)}</option>)}</select></label>;
 }
 
 function TextInput({ label, value, onChange }) {
-  return <label className="block text-sm">{label}<input value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/50 px-3" /></label>;
+  return <label className="block text-sm">{label}<input value={value} onChange={(event) => onChange(event.target.value)} className="field-control" /></label>;
 }
 
 function localized(item, field, language) {

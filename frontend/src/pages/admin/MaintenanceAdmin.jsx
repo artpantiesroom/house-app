@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { ClipboardList } from 'lucide-react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
+import EmptyState from '../../components/EmptyState.jsx';
+import ErrorState from '../../components/ErrorState.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
@@ -96,14 +99,14 @@ export default function MaintenanceAdmin() {
         <FilterSelect label={t('status')} value={filters.status} onChange={(value) => setFilters((current) => ({ ...current, status: value }))} options={requestStatuses} allLabel={t('all')} t={t} />
         <FilterSelect label={t('category')} value={filters.category} onChange={(value) => setFilters((current) => ({ ...current, category: value }))} options={requestCategories} allLabel={t('all')} t={t} />
         <FilterSelect label={t('priority')} value={filters.priority} onChange={(value) => setFilters((current) => ({ ...current, priority: value }))} options={requestPriorities} allLabel={t('all')} t={t} />
-        <label className="block text-sm">{t('search')}<input value={filters.search} onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/50 px-3" /></label>
-        <div className="flex items-end gap-2"><button onClick={applyFilters} className="focus-ring h-10 rounded-xl bg-primary px-4 text-sm font-semibold">{t('applyFilters')}</button></div>
+        <label className="block text-sm">{t('search')}<input value={filters.search} onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))} className="field-control" /></label>
+        <div className="flex items-end gap-2"><button onClick={applyFilters} className="primary-button w-full text-sm">{t('applyFilters')}</button></div>
       </div>
 
-      {error && <p className="rounded-xl border border-rose-300/40 bg-rose-950/40 p-3 text-sm text-rose-100">{error}</p>}
+      {error && <ErrorState title={t('errorTitle')} description={error} onRetry={() => load(filters)} retryLabel={t('retry')} />}
       {success && <p className="rounded-xl border border-emerald-300/40 bg-emerald-400/10 p-3 text-sm text-emerald-100">{success}</p>}
 
-      {loading ? <SkeletonCard rows={6} /> : (
+      {loading ? <SkeletonCard variant="list" count={5} /> : (
         <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="grid gap-3">
             {requests.length ? requests.map((request) => (
@@ -124,7 +127,7 @@ export default function MaintenanceAdmin() {
                 </div>
                 <p className="mt-3 text-xs text-sky-100/55">{t('createdAt')}: {formatDateTime(request.createdAt, language)}</p>
               </article>
-            )) : <div className="glass rounded-2xl p-5 text-sky-100/70">{t('noRequests')}</div>}
+            )) : <EmptyState icon={ClipboardList} title={t('noRequests')} description={t('noRequestsDescription')} />}
           </div>
 
           <form onSubmit={update} className="glass h-fit space-y-3 rounded-2xl p-4">
@@ -136,10 +139,10 @@ export default function MaintenanceAdmin() {
                 </div>
                 <FilterSelect label={t('status')} value={form.status} onChange={(value) => setForm((current) => ({ ...current, status: value }))} options={requestStatuses} t={t} />
                 <FilterSelect label={t('priority')} value={form.priority} onChange={(value) => setForm((current) => ({ ...current, priority: value }))} options={requestPriorities} t={t} />
-                <label className="block text-sm">{t('adminResponse')}<textarea maxLength={3000} value={form.adminResponse} onChange={(event) => setForm((current) => ({ ...current, adminResponse: event.target.value }))} className="focus-ring mt-1 min-h-28 w-full rounded-xl border border-sky-100/15 bg-sky-950/50 px-3 py-2" /></label>
-                <label className="block text-sm">{t('internalNotes')}<textarea maxLength={3000} value={form.internalNotes} onChange={(event) => setForm((current) => ({ ...current, internalNotes: event.target.value }))} className="focus-ring mt-1 min-h-28 w-full rounded-xl border border-sky-100/15 bg-sky-950/50 px-3 py-2" /></label>
+                <label className="block text-sm">{t('adminResponse')}<textarea maxLength={3000} value={form.adminResponse} onChange={(event) => setForm((current) => ({ ...current, adminResponse: event.target.value }))} className="field-control min-h-28" /></label>
+                <label className="block text-sm">{t('internalNotes')}<textarea maxLength={3000} value={form.internalNotes} onChange={(event) => setForm((current) => ({ ...current, internalNotes: event.target.value }))} className="field-control min-h-28" /></label>
                 <p className="text-xs text-sky-100/55">{t('updatedAt')}: {formatDateTime(selected.updatedAt, language)} · {t('resolvedAt')}: {formatDateTime(selected.resolvedAt, language)}</p>
-                <button disabled={saving} className="focus-ring rounded-xl bg-primary px-4 py-3 font-semibold disabled:opacity-60">{saving ? <LoadingSpinner label={t('saving')} /> : t('updateRequest')}</button>
+                <button disabled={saving} className="primary-button">{saving ? <LoadingSpinner label={t('saving')} /> : t('updateRequest')}</button>
               </>
             ) : <p className="text-sm text-sky-100/70">{t('selectRequest')}</p>}
           </form>
@@ -152,7 +155,7 @@ export default function MaintenanceAdmin() {
 function FilterSelect({ label, value, onChange, options, allLabel, t }) {
   return (
     <label className="block text-sm">{label}
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/80 px-3">
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="field-control">
         {allLabel && <option value="">{allLabel}</option>}
         {options.map(([optionValue, labelKey]) => <option key={optionValue} value={optionValue}>{t(labelKey)}</option>)}
       </select>
