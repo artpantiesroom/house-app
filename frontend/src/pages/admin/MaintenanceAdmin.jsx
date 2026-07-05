@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
+import StatusBadge from '../../components/StatusBadge.jsx';
 import { maintenanceApi } from '../../api/maintenanceApi.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { formatDateTime } from '../../utils/date.js';
@@ -117,9 +118,9 @@ export default function MaintenanceAdmin() {
                 </div>
                 <p className="mt-2 text-sm text-sky-100/75">{request.description}</p>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  <Badge>{getRequestStatusLabel(request.status, t)}</Badge>
-                  <Badge>{getRequestPriorityLabel(request.priority, t)}</Badge>
-                  <Badge>{getRequestCategoryLabel(request.category, t)}</Badge>
+                  <StatusBadge status={request.status}>{getRequestStatusLabel(request.status, t)}</StatusBadge>
+                  <StatusBadge tone={priorityTone(request.priority)}>{getRequestPriorityLabel(request.priority, t)}</StatusBadge>
+                  <StatusBadge>{getRequestCategoryLabel(request.category, t)}</StatusBadge>
                 </div>
                 <p className="mt-3 text-xs text-sky-100/55">{t('createdAt')}: {formatDateTime(request.createdAt, language)}</p>
               </article>
@@ -159,6 +160,8 @@ function FilterSelect({ label, value, onChange, options, allLabel, t }) {
   );
 }
 
-function Badge({ children }) {
-  return <span className="rounded-full border border-sky-100/15 bg-sky-950/50 px-2 py-1">{children}</span>;
+function priorityTone(priority) {
+  if (priority === 'URGENT' || priority === 'HIGH') return 'danger';
+  if (priority === 'NORMAL') return 'warning';
+  return 'neutral';
 }

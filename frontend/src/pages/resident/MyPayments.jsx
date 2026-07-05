@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
+import StatusBadge from '../../components/StatusBadge.jsx';
 import { paymentsApi } from '../../api/paymentsApi.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { formatDate } from '../../utils/date.js';
@@ -80,8 +81,8 @@ export default function MyPayments() {
               <div className="text-right">
                 <p className="text-lg font-bold">{formatMoney(payment.amountMinor, payment.currency, language === 'en' ? 'en-US' : 'uk-UA')} <DataClassificationBadge level="Confidential" /></p>
                 <div className="mt-2 flex flex-wrap justify-end gap-2 text-xs">
-                  <Badge>{getPaymentStatusLabel(payment.status, t)}</Badge>
-                  <Badge>{getPaymentTypeLabel(payment.type, t)}</Badge>
+                  <StatusBadge status={payment.status}>{getPaymentStatusLabel(payment.status, t)}</StatusBadge>
+                  <StatusBadge>{getPaymentTypeLabel(payment.type, t)}</StatusBadge>
                 </div>
               </div>
             </div>
@@ -99,10 +100,6 @@ function FilterSelect({ label, value, onChange, options, t }) {
 
 function TextInput({ label, value, onChange }) {
   return <label className="block text-sm">{label}<input value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 h-10 w-full rounded-xl border border-sky-100/15 bg-sky-950/50 px-3" /></label>;
-}
-
-function Badge({ children }) {
-  return <span className="rounded-full border border-sky-100/15 bg-sky-950/50 px-2 py-1">{children}</span>;
 }
 
 function localized(item, field, language) {

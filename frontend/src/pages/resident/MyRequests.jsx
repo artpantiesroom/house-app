@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
+import StatusBadge from '../../components/StatusBadge.jsx';
 import { maintenanceApi } from '../../api/maintenanceApi.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { formatDateTime } from '../../utils/date.js';
@@ -134,8 +135,8 @@ export default function MyRequests() {
                 <p className="mt-1 text-xs text-sky-100/55">{request.apartmentNumber || t('apartmentNotAssigned')} · {getRequestCategoryLabel(request.category, t)}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Badge>{getRequestStatusLabel(request.status, t)}</Badge>
-                <Badge>{getRequestPriorityLabel(request.priority, t)}</Badge>
+                <StatusBadge status={request.status}>{getRequestStatusLabel(request.status, t)}</StatusBadge>
+                <StatusBadge tone={priorityTone(request.priority)}>{getRequestPriorityLabel(request.priority, t)}</StatusBadge>
               </div>
             </div>
             <p className="mt-2 text-sm text-sky-100/75">{request.description} <DataClassificationBadge level="Internal" /></p>
@@ -148,6 +149,8 @@ export default function MyRequests() {
   );
 }
 
-function Badge({ children }) {
-  return <span className="rounded-full border border-sky-100/15 bg-sky-950/50 px-2 py-1 text-xs">{children}</span>;
+function priorityTone(priority) {
+  if (priority === 'URGENT' || priority === 'HIGH') return 'danger';
+  if (priority === 'NORMAL') return 'warning';
+  return 'neutral';
 }

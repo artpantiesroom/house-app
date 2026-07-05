@@ -17,10 +17,10 @@ export default function SessionTimeoutModal({ secondsLeft, onStaySignedIn, onLog
           </div>
         </div>
         <div className="flex gap-3">
-          <button onClick={onStaySignedIn} className="focus-ring flex-1 rounded-xl bg-primary px-4 py-3 font-semibold text-white transition hover:scale-[1.02]">
+          <button onClick={onStaySignedIn} className="focus-ring flex-1 rounded-xl bg-primary px-4 py-3 font-semibold text-white shadow-glass transition hover:bg-primaryHover">
             {t('staySignedIn')}
           </button>
-          <button onClick={onLogout} className="focus-ring flex-1 rounded-xl border border-sky-100/20 px-4 py-3 font-semibold text-sky-100 transition hover:scale-[1.02]">
+          <button onClick={onLogout} className="focus-ring flex-1 rounded-xl border border-sky-100/20 px-4 py-3 font-semibold text-sky-100 transition hover:border-primary hover:bg-sky-400/10 hover:text-sky-50">
             {t('logout')}
           </button>
         </div>

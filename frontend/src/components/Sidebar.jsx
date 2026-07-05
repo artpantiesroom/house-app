@@ -13,13 +13,13 @@ export default function Sidebar({ user, links, onLogout }) {
     <>
       <aside className="glass fixed left-4 top-4 hidden h-[calc(100vh-2rem)] w-72 flex-col rounded-2xl p-4 lg:flex">
         <div className="mb-6 flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-white"><Building2 /></div>
+          <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-white shadow-glass"><Building2 /></div>
           <div>
             <p className="font-semibold">{t('appName')}</p>
             <p className="text-xs text-sky-100/65">{user.email}</p>
           </div>
         </div>
-        <div className="mb-5 rounded-xl bg-sky-400/10 p-3 text-xs text-sky-100/75">
+        <div className="mb-5 rounded-xl border border-sky-100/10 bg-sky-400/10 p-3 text-xs text-sky-100/75">
           <p className="font-semibold text-sky-50">{user.role === 'ADMIN' ? t('adminRole') : t('residentRole')}</p>
           <p>{t('lastLogin')}: {formatDateTime(user.lastLoginTime, language)}</p>
         </div>
@@ -28,13 +28,13 @@ export default function Sidebar({ user, links, onLogout }) {
           {links.map((link) => {
             const Icon = iconMap[link.icon] || Home;
             return (
-              <NavLink key={link.to} to={link.to} className={({ isActive }) => `focus-ring flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition hover:scale-[1.02] ${isActive ? 'bg-primary text-white' : 'text-sky-100/75 hover:bg-sky-400/10'}`}>
+              <NavLink key={link.to} to={link.to} className={({ isActive }) => `focus-ring flex min-h-11 items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${isActive ? 'bg-primary text-white shadow-glass' : 'text-sky-100/75 hover:bg-sky-400/10 hover:text-sky-50'}`}>
                 <Icon size={18} /> {link.label}
               </NavLink>
             );
           })}
         </nav>
-        <button onClick={onLogout} className="focus-ring mt-4 flex items-center justify-center gap-2 rounded-xl border border-sky-100/15 px-3 py-3 text-sm font-semibold text-sky-100 transition hover:scale-[1.02]">
+        <button onClick={onLogout} className="focus-ring mt-4 flex items-center justify-center gap-2 rounded-xl border border-sky-100/15 px-3 py-3 text-sm font-semibold text-sky-100 transition hover:border-primary hover:bg-sky-400/10 hover:text-sky-50">
           <LogOut size={18} /> {t('logout')}
         </button>
         <FooterSecurityBadge />
@@ -43,7 +43,7 @@ export default function Sidebar({ user, links, onLogout }) {
         {links.map((link) => {
           const Icon = iconMap[link.icon] || Home;
           return (
-            <NavLink key={link.to} to={link.to} className={({ isActive }) => `focus-ring flex min-w-24 flex-col items-center rounded-xl px-2 py-2 text-center text-[11px] leading-tight ${isActive ? 'bg-primary text-white' : 'text-sky-100/70'}`}>
+            <NavLink key={link.to} to={link.to} className={({ isActive }) => `focus-ring flex min-h-14 min-w-24 flex-col items-center justify-center rounded-xl px-2 py-2 text-center text-[11px] font-medium leading-tight ${isActive ? 'bg-primary text-white shadow-glass' : 'text-sky-100/70 hover:bg-sky-400/10 hover:text-sky-50'}`}>
               <Icon size={18} /> {link.label}
             </NavLink>
           );

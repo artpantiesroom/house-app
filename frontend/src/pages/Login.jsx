@@ -66,7 +66,7 @@ export default function Login() {
         <div className="mb-6 flex items-center gap-3">
           <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-white"><Building2 /></div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold">Genesis House</h1>
+            <h1 className="text-2xl font-bold">Genesis</h1>
             <p className="text-sm text-sky-100/70">{t('loginSubtitle')}</p>
           </div>
           <LanguageToggle compact />

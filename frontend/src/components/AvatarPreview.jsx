@@ -28,7 +28,7 @@ export default function AvatarPreview({ avatarUrl, name, sizeClass = 'h-20 w-20'
   }, [avatarUrl]);
 
   return (
-    <div className={`grid shrink-0 place-items-center overflow-hidden border border-sky-100/15 bg-sky-400/10 ${sizeClass} ${roundedClass}`}>
+    <div className={`grid shrink-0 place-items-center overflow-hidden border border-sky-100/15 bg-sky-400/10 shadow-sm ${sizeClass} ${roundedClass}`}>
       {objectUrl ? (
         <img src={objectUrl} alt="" className={`h-full w-full object-cover ${roundedClass}`} />
       ) : (

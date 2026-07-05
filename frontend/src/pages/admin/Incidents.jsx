@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { incidentsApi } from '../../api/incidentsApi.js';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
+import StatusBadge from '../../components/StatusBadge.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { formatDateTime } from '../../utils/date.js';
 
@@ -156,9 +157,9 @@ export default function Incidents() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="mb-2 flex flex-wrap gap-2">
-                    <Badge tone={severityTone(incident.severity)}>{t(`incidentSeverity${incident.severity}`)}</Badge>
-                    <Badge tone={statusTone(incident.status)}>{t(`incidentStatus${incident.status}`)}</Badge>
-                    <Badge>{t(`incidentCategory${incident.category}`)}</Badge>
+                    <StatusBadge tone={severityTone(incident.severity)}>{t(`incidentSeverity${incident.severity}`)}</StatusBadge>
+                    <StatusBadge status={incident.status}>{t(`incidentStatus${incident.status}`)}</StatusBadge>
+                    <StatusBadge>{t(`incidentCategory${incident.category}`)}</StatusBadge>
                   </div>
                   <h2 className="text-lg font-semibold">{incident.title}</h2>
                   <p className="mt-2 text-sm text-sky-100/80">{incident.description}</p>
@@ -214,24 +215,8 @@ function TextArea({ label, value, onChange, required = false }) {
   return <label className="block text-sm md:col-span-3">{label}<textarea required={required} maxLength={3000} value={value} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-1 min-h-24 w-full rounded-xl border border-sky-100/15 bg-sky-950/70 px-3 py-2" /></label>;
 }
 
-function Badge({ children, tone = 'sky' }) {
-  const tones = {
-    sky: 'border-sky-300/30 bg-sky-400/10 text-sky-100',
-    emerald: 'border-emerald-300/40 bg-emerald-400/10 text-emerald-100',
-    amber: 'border-amber-300/40 bg-amber-400/10 text-amber-100',
-    rose: 'border-rose-300/40 bg-rose-400/10 text-rose-100',
-  };
-  return <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${tones[tone] || tones.sky}`}>{children}</span>;
-}
-
 function severityTone(severity) {
-  if (severity === 'CRITICAL' || severity === 'HIGH') return 'rose';
-  if (severity === 'MEDIUM') return 'amber';
-  return 'emerald';
-}
-
-function statusTone(status) {
-  if (status === 'RESOLVED') return 'emerald';
-  if (status === 'FALSE_POSITIVE') return 'amber';
-  return 'sky';
+  if (severity === 'CRITICAL' || severity === 'HIGH') return 'danger';
+  if (severity === 'MEDIUM') return 'warning';
+  return 'success';
 }

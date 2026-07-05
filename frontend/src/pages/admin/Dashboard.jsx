@@ -6,6 +6,7 @@ import { maintenanceApi } from '../../api/maintenanceApi.js';
 import { paymentsApi } from '../../api/paymentsApi.js';
 import { residentsApi } from '../../api/residentsApi.js';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
+import StatusBadge from '../../components/StatusBadge.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { getPaymentStatusLabel } from '../resident/MyPayments.jsx';
 import { getRequestStatusLabel } from '../resident/MyRequests.jsx';
@@ -96,9 +97,12 @@ export default function Dashboard() {
               <div key={incident.id} className="rounded-xl bg-sky-400/10 p-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <p className="font-semibold">{incident.title}</p>
-                  <Badge>{t(`incidentSeverity${incident.severity}`)}</Badge>
+                  <StatusBadge tone={severityTone(incident.severity)}>{t(`incidentSeverity${incident.severity}`)}</StatusBadge>
                 </div>
-                <p className="mt-1 text-sm text-sky-100/70">{t(`incidentStatus${incident.status}`)} · {t(`incidentCategory${incident.category}`)}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <StatusBadge status={incident.status}>{t(`incidentStatus${incident.status}`)}</StatusBadge>
+                  <StatusBadge>{t(`incidentCategory${incident.category}`)}</StatusBadge>
+                </div>
               </div>
             ))}
           </div>
@@ -125,7 +129,8 @@ export default function Dashboard() {
           render={(request) => (
             <>
               <p className="font-semibold">{request.title}</p>
-              <p className="text-sm text-sky-100/70">{request.residentName || t('unknownResident')} · {getRequestStatusLabel(request.status, t)}</p>
+              <p className="text-sm text-sky-100/70">{request.residentName || t('unknownResident')}</p>
+              <div className="mt-2"><StatusBadge status={request.status}>{getRequestStatusLabel(request.status, t)}</StatusBadge></div>
             </>
           )}
         />
@@ -136,7 +141,8 @@ export default function Dashboard() {
           render={(payment) => (
             <>
               <p className="font-semibold">{payment.residentName || t('unknownResident')}</p>
-              <p className="text-sm text-sky-100/70">{payment.periodMonth}/{payment.periodYear} · {getPaymentStatusLabel(payment.status, t)}</p>
+              <p className="text-sm text-sky-100/70">{payment.periodMonth}/{payment.periodYear}</p>
+              <div className="mt-2"><StatusBadge status={payment.status}>{getPaymentStatusLabel(payment.status, t)}</StatusBadge></div>
             </>
           )}
         />
@@ -157,6 +163,8 @@ function CompactList({ title, emptyLabel, items, render }) {
   );
 }
 
-function Badge({ children }) {
-  return <span className="rounded-full border border-sky-100/15 bg-sky-950/50 px-2 py-1 text-xs">{children}</span>;
+function severityTone(severity) {
+  if (severity === 'CRITICAL' || severity === 'HIGH') return 'danger';
+  if (severity === 'MEDIUM') return 'warning';
+  return 'success';
 }
