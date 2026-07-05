@@ -3,6 +3,7 @@ import { CreditCard } from 'lucide-react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import EmptyState from '../../components/EmptyState.jsx';
 import ErrorState from '../../components/ErrorState.jsx';
+import PageHeader from '../../components/PageHeader.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import { paymentsApi } from '../../api/paymentsApi.js';
@@ -63,7 +64,7 @@ export default function MyPayments() {
 
   return (
     <section className="space-y-5">
-      <h1 className="text-3xl font-bold">{t('myPaymentsTitle')}</h1>
+      <PageHeader title={t('myPaymentsTitle')} subtitle={t('myPaymentsSubtitle')} />
       <div className="glass grid gap-3 rounded-2xl p-4 md:grid-cols-5">
         <FilterSelect label={t('status')} value={filters.status} onChange={(value) => setFilters((current) => ({ ...current, status: value }))} options={paymentStatuses} t={t} />
         <FilterSelect label={t('paymentType')} value={filters.type} onChange={(value) => setFilters((current) => ({ ...current, type: value }))} options={paymentTypes} t={t} />

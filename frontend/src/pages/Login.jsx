@@ -61,20 +61,28 @@ export default function Login() {
   };
 
   return (
-    <main className="grid min-h-screen place-items-center p-4">
-      <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="glass w-full max-w-md rounded-2xl p-6">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-white"><Building2 /></div>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold">Genesis</h1>
-            <p className="text-sm text-sky-100/70">{t('loginSubtitle')}</p>
-          </div>
+    <main className="grid min-h-screen place-items-center px-4 py-8">
+      <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+        <div className="mb-8 flex justify-center">
           <LanguageToggle compact />
         </div>
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-[1.75rem] border border-sky-100/15 bg-primary text-white shadow-glass">
+            <Building2 size={36} aria-hidden="true" />
+          </div>
+          <h1 className="text-4xl font-bold leading-tight text-sky-50">Genesis</h1>
+          <p className="mt-2 text-base font-semibold text-primaryLight">{t('loginSubtitle')}</p>
+          <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-sky-100/62">{t('loginFormSubtitle')}</p>
+        </div>
+        <div className="glass rounded-[2rem] p-5 shadow-glass sm:p-6">
+          <div className="mb-6 border-b border-sky-100/10 pb-5 text-center">
+            <h2 className="text-xl font-semibold text-sky-50">{t('loginFormTitle')}</h2>
+            <p className="mt-1 text-sm text-sky-100/62">{t('prototypeConnectionNotice')}</p>
+          </div>
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div>
             <label htmlFor="email" className="mb-2 block text-sm font-medium">Email</label>
-            <input id="email" value={form.email} onChange={(e) => updateField('email', e.target.value)} className={`focus-ring w-full rounded-xl border bg-sky-950/50 px-4 py-3 text-sky-50 ${errors.email ? 'field-error border-rose-300' : 'border-sky-100/15'}`} />
+            <input id="email" value={form.email} onChange={(e) => updateField('email', e.target.value)} className={`field-control ${errors.email ? 'field-error border-rose-300' : ''}`} />
             {errors.email && <p className="mt-1 text-sm text-rose-200">{errors.email}</p>}
           </div>
           <div>
@@ -83,8 +91,8 @@ export default function Login() {
             <div className="mt-2"><PasswordStrengthIndicator password={form.password} /></div>
             {errors.password && <p className="mt-1 text-sm text-rose-200">{errors.password}</p>}
           </div>
-          <label className="flex items-center gap-2 text-sm text-sky-100/80">
-            <input type="checkbox" checked={form.remember} onChange={(e) => setForm({ ...form, remember: e.target.checked })} className="h-4 w-4 rounded border-sky-100/30 bg-sky-950" />
+          <label className="flex min-h-11 items-center gap-3 rounded-2xl border border-sky-100/10 bg-sky-950/30 px-3 text-sm text-sky-100/80">
+            <input type="checkbox" checked={form.remember} onChange={(e) => setForm({ ...form, remember: e.target.checked })} className="h-5 w-5 rounded border-sky-100/30 bg-sky-950 accent-primary" />
             {t('rememberSession')}
           </label>
           {message && <p className="rounded-xl border border-sky-100/10 bg-sky-400/10 p-3 text-sm text-sky-100">{message}</p>}
@@ -98,6 +106,7 @@ export default function Login() {
           <p>{t('residentDemoCredentials')}</p>
         </div>
         <p className="mt-4 flex items-center gap-2 text-xs text-sky-100/65"><ShieldCheck size={14} /> {t('prototypeSecurityNotice')}</p>
+        </div>
         <FooterSecurityBadge />
       </motion.section>
     </main>

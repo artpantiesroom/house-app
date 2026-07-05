@@ -19,12 +19,12 @@ export default function ResidentLayout() {
     { to: '/resident/profile', label: t('navProfile'), icon: 'profile' },
   ];
   return (
-    <div className="min-h-screen pb-28 lg:pb-0">
+    <div className="min-h-screen pb-[calc(8rem+env(safe-area-inset-bottom))] lg:pb-0">
       <Sidebar user={user} links={links} onLogout={() => logout()} />
-      <main className="px-4 py-4 lg:ml-80 lg:px-8">
+      <main className="px-4 py-5 lg:ml-80 lg:px-8 lg:py-6">
         <div className="mb-4 flex items-center justify-between gap-3 lg:hidden">
           <div><p className="font-semibold">{user.email}</p><p className="text-xs text-sky-100/70">{t('residentRole')} · {formatDateTime(user.lastLoginTime, language)}</p></div>
-          <div className="flex items-center gap-2"><LanguageToggle compact /><button onClick={() => logout()} className="focus-ring rounded-xl border border-sky-100/20 px-4 py-2 text-sm">{t('logout')}</button></div>
+          <div className="flex items-center gap-2"><LanguageToggle compact /><button onClick={() => logout()} className="secondary-button px-4 py-2">{t('logout')}</button></div>
         </div>
         <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
           <Outlet />

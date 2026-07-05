@@ -3,6 +3,7 @@ import { Building2 } from 'lucide-react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import EmptyState from '../../components/EmptyState.jsx';
 import ErrorState from '../../components/ErrorState.jsx';
+import PageHeader from '../../components/PageHeader.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { contactsApi } from '../../api/contactsApi.js';
 import { buildingInfo } from '../../config/buildingInfo.js';
@@ -32,8 +33,10 @@ export default function Contacts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const load = () => {
     let mounted = true;
+    setLoading(true);
+    setError('');
     contactsApi.listResident()
       .then((items) => {
         if (mounted) setContacts(items);
@@ -47,20 +50,24 @@ export default function Contacts() {
     return () => {
       mounted = false;
     };
+  };
+
+  useEffect(() => {
+    return load();
   }, [l.loadError]);
 
   if (loading) return <SkeletonCard variant="list" count={3} />;
 
   return (
     <section className="space-y-5">
-      <h1 className="text-3xl font-bold">{t('contactsTitle')}</h1>
+      <PageHeader title={t('contactsTitle')} subtitle={t('contactsSubtitle')} />
       <div className="glass rounded-2xl p-5">
         <h2 className="text-xl font-semibold">{buildingInfo.name}</h2>
         <p className="mt-2 text-sky-100/70">{buildingInfo.address}</p>
         <p className="mt-2 text-sm text-sky-100/65">{l.quietHours} {buildingInfo.quietHours}</p>
       </div>
       <div className="grid gap-3">
-        {error && <ErrorState title={t('errorTitle')} description={error} retryLabel={t('retry')} />}
+        {error && <ErrorState title={t('errorTitle')} description={error} onRetry={load} retryLabel={t('retry')} />}
         {!error && !contacts.length && <EmptyState icon={Building2} title={l.empty} description={t('emptyContactsDescription')} />}
         {contacts.map((contact) => (
           <article key={contact.id} className="glass rounded-2xl p-4">

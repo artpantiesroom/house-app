@@ -1,5 +1,5 @@
 export const buildingInfo = {
-  name: 'Azure Harbor Residence',
+  name: 'Genesis Residence',
   address: 'вул. Морська, 12, Київ',
   floors: 16,
   quietHours: '22:00-07:00',

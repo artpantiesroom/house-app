@@ -8,6 +8,7 @@ import { residentsApi } from '../../api/residentsApi.js';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import EmptyState from '../../components/EmptyState.jsx';
 import ErrorState from '../../components/ErrorState.jsx';
+import PageHeader from '../../components/PageHeader.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { getPaymentStatusLabel } from '../resident/MyPayments.jsx';
@@ -65,13 +66,7 @@ export default function Dashboard() {
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold">{t('adminDashboardTitle')}</h1>
-          <p className="mt-2 max-w-3xl text-sky-100/70">{t('dashboardSubtitle')}</p>
-        </div>
-        <button onClick={load} className="secondary-button">{t('refresh')}</button>
-      </div>
+      <PageHeader title={t('adminDashboardTitle')} subtitle={t('dashboardSubtitle')} action={<button onClick={load} className="secondary-button">{t('refresh')}</button>} />
 
       {error && <ErrorState title={t('errorTitle')} description={error} onRetry={load} retryLabel={t('retry')} />}
 
@@ -82,10 +77,12 @@ export default function Dashboard() {
           [t('navPaymentsOverview'), counts.unpaidPayments, CreditCard],
           [t('navSecurityIncidents'), counts.activeIncidents, AlertTriangle],
         ].map(([label, value, Icon]) => (
-          <div key={label} className="glass flex min-h-40 flex-col justify-between rounded-2xl p-5">
-            <Icon className="mb-4 text-accent" />
+          <div key={label} className="glass flex min-h-44 flex-col justify-between rounded-3xl p-6">
+            <div className="mb-5 grid h-12 w-12 place-items-center rounded-2xl border border-sky-100/15 bg-sky-400/10 text-accent shadow-sm">
+              <Icon size={24} aria-hidden="true" />
+            </div>
             <p className="text-sm text-sky-100/65">{label}</p>
-            <p className="text-3xl font-bold">{value}</p>
+            <p className="mt-2 text-4xl font-bold leading-none">{value}</p>
           </div>
         ))}
       </div>

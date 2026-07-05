@@ -4,6 +4,7 @@ import LoadingSpinner from '../../components/LoadingSpinner.jsx';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import EmptyState from '../../components/EmptyState.jsx';
 import ErrorState from '../../components/ErrorState.jsx';
+import PageHeader from '../../components/PageHeader.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import { maintenanceApi } from '../../api/maintenanceApi.js';
@@ -120,7 +121,7 @@ export default function MyRequests() {
 
   return (
     <section className="space-y-5">
-      <h1 className="text-3xl font-bold">{t('myRequests')}</h1>
+      <PageHeader title={t('myRequests')} subtitle={t('myRequestsSubtitle')} />
       <form onSubmit={submit} className="glass space-y-3 rounded-2xl p-4">
         <label className="block text-sm">{t('title')}<input value={form.title} maxLength={160} onChange={(event) => updateField('title', event.target.value)} className={`focus-ring mt-1 w-full rounded-xl border bg-sky-950/50 px-3 py-2 ${errors.title ? 'field-error border-rose-300' : 'border-sky-100/15'}`} />{errors.title && <span className="text-xs normal-case text-rose-200">{errors.title}</span>}</label>
         <label className="block text-sm">{t('category')}<select value={form.category} onChange={(event) => updateField('category', event.target.value)} className={`focus-ring mt-1 w-full rounded-xl border bg-sky-950/80 px-3 py-2 ${errors.category ? 'field-error border-rose-300' : 'border-sky-100/15'}`}><option value="">{t('category')}</option>{requestCategories.map(([value, labelKey]) => <option key={value} value={value}>{t(labelKey)}</option>)}</select>{errors.category && <span className="text-xs normal-case text-rose-200">{errors.category}</span>}</label>

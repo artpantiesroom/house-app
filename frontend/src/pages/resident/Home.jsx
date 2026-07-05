@@ -3,6 +3,7 @@ import { Bell } from 'lucide-react';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import EmptyState from '../../components/EmptyState.jsx';
 import ErrorState from '../../components/ErrorState.jsx';
+import PageHeader from '../../components/PageHeader.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { announcementsApi } from '../../api/announcementsApi.js';
 import { buildingInfo } from '../../config/buildingInfo.js';
@@ -53,8 +54,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const load = () => {
     let mounted = true;
+    setLoading(true);
+    setError('');
     announcementsApi.listResident()
       .then((items) => {
         if (mounted) setAnnouncements(items);
@@ -68,13 +71,18 @@ export default function Home() {
     return () => {
       mounted = false;
     };
+  };
+
+  useEffect(() => {
+    return load();
   }, [l.loadError]);
 
   if (loading) return <div className="grid gap-4"><SkeletonCard /><SkeletonCard variant="list" count={2} /></div>;
 
   return (
     <section className="space-y-5">
-      <div><h1 className="text-3xl font-bold">{t('residentHomeTitle')}</h1><p className="mt-2 text-sky-100/70">{buildingInfo.name} · {buildingInfo.address}</p></div>
+      <PageHeader title={t('residentHomeTitle')} subtitle={t('residentHomeSubtitle')} />
+      <p className="-mt-3 text-sm text-sky-100/62">{buildingInfo.name} · {buildingInfo.address}</p>
       <div className="glass rounded-2xl p-5">
         <h2 className="text-xl font-semibold">{l.buildingInfo}</h2>
         <p className="mt-2 text-sky-100/70">{l.floors}: {buildingInfo.floors} · {l.quietHours} {buildingInfo.quietHours}</p>
@@ -82,7 +90,7 @@ export default function Home() {
       </div>
       <div className="grid gap-3">
         <h2 className="text-xl font-semibold">{l.announcements} <DataClassificationBadge level="Public" /></h2>
-        {error && <ErrorState title={t('errorTitle')} description={error} retryLabel={t('retry')} />}
+        {error && <ErrorState title={t('errorTitle')} description={error} onRetry={load} retryLabel={t('retry')} />}
         {!error && !announcements.length && <EmptyState icon={Bell} title={l.empty} description={t('emptyAnnouncementsDescription')} />}
         {announcements.map((announcement) => (
           <article key={announcement.id} className="glass rounded-2xl p-4">

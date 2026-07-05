@@ -4,6 +4,7 @@ import DataClassificationBadge from '../../components/DataClassificationBadge.js
 import EmptyState from '../../components/EmptyState.jsx';
 import ErrorState from '../../components/ErrorState.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
+import PageHeader from '../../components/PageHeader.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { contactsApi } from '../../api/contactsApi.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
@@ -184,7 +185,7 @@ export default function Contacts() {
 
   return (
     <section className="space-y-5">
-      <h1 className="text-3xl font-bold">{t('buildingContactsTitle')}</h1>
+      <PageHeader title={t('buildingContactsTitle')} subtitle={t('contactsSubtitle')} />
 
       <form onSubmit={submit} className="glass space-y-4 rounded-2xl p-4">
         <div className="grid gap-3 md:grid-cols-2">
@@ -199,7 +200,7 @@ export default function Contacts() {
           <TextInput label={l.availabilityUk} value={form.availabilityUk} onChange={(value) => updateField('availabilityUk', value)} />
           <TextInput label={l.availabilityEn} value={form.availabilityEn} onChange={(value) => updateField('availabilityEn', value)} />
           <TextInput label={l.sortOrder} type="number" value={form.sortOrder} onChange={(value) => updateField('sortOrder', value)} />
-          <label className="flex items-center gap-3 pt-7 text-sm"><input type="checkbox" checked={form.active} onChange={(event) => updateField('active', event.target.checked)} className="h-4 w-4 rounded border-sky-100/20 bg-sky-950/70" />{l.active}</label>
+          <label className="flex min-h-11 items-center gap-3 pt-7 text-sm"><input type="checkbox" checked={form.active} onChange={(event) => updateField('active', event.target.checked)} className="h-5 w-5 rounded border-sky-100/20 bg-sky-950/70 accent-primary" />{l.active}</label>
         </div>
         {error && <ErrorState title={t('errorTitle')} description={error} />}
         <div className="flex flex-wrap gap-2">

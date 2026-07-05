@@ -4,6 +4,7 @@ import DataClassificationBadge from '../../components/DataClassificationBadge.js
 import EmptyState from '../../components/EmptyState.jsx';
 import ErrorState from '../../components/ErrorState.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
+import PageHeader from '../../components/PageHeader.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import { paymentsApi } from '../../api/paymentsApi.js';
@@ -149,7 +150,7 @@ export default function Payments() {
 
   return (
     <section className="space-y-5">
-      <h1 className="text-3xl font-bold">{t('paymentsOverviewTitle')}</h1>
+      <PageHeader title={t('paymentsOverviewTitle')} subtitle={t('paymentsOverviewSubtitle')} />
 
       <form onSubmit={submit} className="glass space-y-4 rounded-2xl p-4">
         <div className="grid gap-3 md:grid-cols-3">

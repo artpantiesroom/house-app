@@ -3,6 +3,7 @@ import { FileClock } from 'lucide-react';
 import { auditApi } from '../../api/auditApi.js';
 import EmptyState from '../../components/EmptyState.jsx';
 import ErrorState from '../../components/ErrorState.jsx';
+import PageHeader from '../../components/PageHeader.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { formatDateTime } from '../../utils/date.js';
@@ -52,7 +53,7 @@ export default function AuditLog() {
 
   return (
     <section className="space-y-5">
-      <h1 className="text-3xl font-bold">{t('auditLogTitle')}</h1>
+      <PageHeader title={t('auditLogTitle')} subtitle={t('auditLogSubtitle')} />
 
       <div className="glass grid gap-3 rounded-2xl p-4 md:grid-cols-6">
         <Select label={t('auditAction')} value={filters.action} onChange={(value) => setFilters((current) => ({ ...current, action: value }))} options={auditActions} labelFor={(value) => t(`auditAction${value}`)} allLabel={t('allActions')} />

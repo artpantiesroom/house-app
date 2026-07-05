@@ -11,7 +11,7 @@ export default function Sidebar({ user, links, onLogout }) {
   const { language, t } = useLanguage();
   return (
     <>
-      <aside className="glass fixed left-4 top-4 hidden h-[calc(100vh-2rem)] w-72 flex-col rounded-2xl p-4 lg:flex">
+      <aside className="glass fixed left-4 top-4 hidden h-[calc(100vh-2rem)] w-72 flex-col rounded-3xl p-4 lg:flex">
         <div className="mb-6 flex items-center gap-3">
           <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-white shadow-glass"><Building2 /></div>
           <div>
@@ -39,7 +39,7 @@ export default function Sidebar({ user, links, onLogout }) {
         </button>
         <FooterSecurityBadge />
       </aside>
-      <nav className="glass fixed inset-x-3 bottom-3 z-30 flex gap-1 overflow-x-auto rounded-2xl p-2 lg:hidden" aria-label="Mobile primary navigation">
+      <nav className="glass fixed inset-x-3 bottom-3 z-30 flex gap-1 overflow-x-auto rounded-3xl p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] lg:hidden" aria-label="Mobile primary navigation">
         {links.map((link) => {
           const Icon = iconMap[link.icon] || Home;
           return (

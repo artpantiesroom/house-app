@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AvatarPreview from '../../components/AvatarPreview.jsx';
 import ErrorState from '../../components/ErrorState.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
+import PageHeader from '../../components/PageHeader.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import DataClassificationBadge from '../../components/DataClassificationBadge.jsx';
 import { residentsApi } from '../../api/residentsApi.js';
@@ -134,17 +135,14 @@ export default function Profile() {
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold">{t('profileTitle')}</h1>
-        <button onClick={load} className="secondary-button">{t('refresh')}</button>
-      </div>
+      <PageHeader title={t('profileTitle')} subtitle={t('profileSubtitle')} action={<button onClick={load} className="secondary-button">{t('refresh')}</button>} />
       {error && <ErrorState title={t('errorTitle')} description={error} onRetry={load} retryLabel={t('retry')} />}
       {success && <div className="rounded-xl border border-emerald-300/40 bg-emerald-500/15 p-3 text-sm text-emerald-100">{success}</div>}
       {profile && (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
           <article className="glass rounded-2xl p-5">
             <div className="flex items-start gap-4">
-              <AvatarPreview avatarUrl={profile.avatarUrl} name={profile.name} />
+              <AvatarPreview avatarUrl={profile.avatarUrl} name={profile.name} interactive label={profile.avatarUrl ? t('replaceAvatar') : t('uploadAvatar')} />
               <div className="min-w-0">
                 <p className="break-words text-xl font-semibold">{profile.name}</p>
                 <p className="break-words text-sm text-sky-100/70">{profile.email}</p>

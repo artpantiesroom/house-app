@@ -5,6 +5,7 @@ import DataClassificationBadge from '../../components/DataClassificationBadge.js
 import EmptyState from '../../components/EmptyState.jsx';
 import ErrorState from '../../components/ErrorState.jsx';
 import LoadingSpinner from '../../components/LoadingSpinner.jsx';
+import PageHeader from '../../components/PageHeader.jsx';
 import PasswordField from '../../components/PasswordField.jsx';
 import SkeletonCard from '../../components/SkeletonCard.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
@@ -211,10 +212,7 @@ export default function Residents() {
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold">{t('residentsTitle')}</h1>
-        <button onClick={load} className="secondary-button">{t('refresh')}</button>
-      </div>
+      <PageHeader title={t('residentsTitle')} subtitle={t('residentsSubtitle')} action={<button onClick={load} className="secondary-button">{t('refresh')}</button>} />
       {error && <ErrorState title={t('errorTitle')} description={error} onRetry={load} retryLabel={t('retry')} />}
       {success && <div className="rounded-xl border border-emerald-300/40 bg-emerald-500/15 p-3 text-sm text-emerald-100">{success}</div>}
       <form onSubmit={save} className="glass grid gap-3 rounded-2xl p-4 md:grid-cols-2 xl:grid-cols-4">
@@ -254,7 +252,7 @@ export default function Residents() {
             <article key={resident.id} className="glass rounded-2xl p-4">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="flex min-w-0 gap-4">
-                  <AvatarPreview avatarUrl={resident.avatarUrl} name={resident.name} sizeClass="h-16 w-16" />
+                  <AvatarPreview avatarUrl={resident.avatarUrl} name={resident.name} sizeClass="h-16 w-16" interactive label={t('replaceAvatar')} />
                   <div className="min-w-0">
                     <p className="text-lg font-semibold">{resident.name} <DataClassificationBadge level="Internal" /></p>
                     <p className="break-words text-sm text-sky-100/70">{resident.email} · {resident.phone || t('notProvided')}</p>
